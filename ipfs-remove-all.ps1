@@ -19,6 +19,7 @@ foreach ($entry in $pinnedEntries) {
 }
 
 ipfs files rm /ccn/relationships.json
+ipfs files rm /ccn/GUID-CID.json
 
 # Garbage collect to clean up the unpinned entries
 Write-Output "Running garbage collection..."

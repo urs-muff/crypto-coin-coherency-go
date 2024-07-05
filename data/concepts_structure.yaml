@@ -1,13 +1,13 @@
 concepts:
   - name: Concept
-    description: A fundamental unit of knowledge or idea
+    description: Acts as a fundamental unit of knowledge or idea, pivotal to the system's operation and interaction.
     type: ConceptType
     children:
       - name: Relationship
-        description: A connection or association between concepts
+        description: Serves as a connection or association between concepts, fundamental for network connectivity and information flow.
         type: ConceptType
       - name: Interaction
-        description: A type of action that can occur between concepts or within relationships
+        description: Represents actions that can occur between concepts or within relationships, crucial for dynamic system responsiveness.
         type: ConceptType
 
   - name: Technology
@@ -36,7 +36,7 @@ concepts:
     description: The abstract science of number, quantity, and space
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Abstraction
 
   - name: Knowledge
@@ -52,7 +52,7 @@ concepts:
     description: The quality of having experience, knowledge, and good judgment
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Transformation
 
   - name: Experience
@@ -76,7 +76,7 @@ concepts:
     description: The physical structure of a person or animal
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Mind
 
   - name: Mind
@@ -94,14 +94,14 @@ concepts:
     description: The division of something conceptually into two opposed or contrasted aspects
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Boundary
 
   - name: Space
     description: A continuous area or expanse that is free, available, or unoccupied
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Time
 
   - name: Time
@@ -123,11 +123,11 @@ concepts:
     description: The state of being united or joined as a whole
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Coherence
       - type: Influences
         target: Society
-      - type: Related To
+      - type: Interacts With
         target: Emergence
 
   - name: Coherence
@@ -136,9 +136,9 @@ concepts:
     relationships:
       - type: Influences
         target: Flow State
-      - type: Related To
+      - type: Interacts With
         target: Wisdom
-      - type: Related To
+      - type: Interacts With
         target: Pattern
 
   - name: Information
@@ -149,7 +149,7 @@ concepts:
     description: The capacity to do work or cause change in a system
     type: BuildingBlockConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Flow State
 
   - name: Consciousness
@@ -188,7 +188,7 @@ concepts:
     description: The state of having many interconnected parts or intricate details
     type: FundamentalConcept
     relationships:
-      - type: Emergent From
+      - type: Transforms Into
         target: Pattern
 
   - name: Order
@@ -197,7 +197,7 @@ concepts:
     relationships:
       - type: Influences
         target: Coherence
-      - type: Opposed To
+      - type: Opposes
         target: Chaos
 
   - name: Chaos
@@ -211,28 +211,28 @@ concepts:
     description: The quality of being made up of exactly similar parts facing each other or around an axis
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Pattern
 
   - name: Entropy
     description: A measure of the disorder or randomness in a system
     type: FundamentalConcept
     relationships:
-      - type: Opposed To
+      - type: Opposes
         target: Order
 
   - name: Synergy
     description: The interaction or cooperation of two or more organizations, substances, or other agents to produce a combined effect greater than the sum of their separate effects
     type: FundamentalConcept
     relationships:
-      - type: Emergent From
+      - type: Transforms Into
         target: Relationship
 
   - name: Resonance
     description: The reinforcement or prolongation of sound by reflection from a surface or by the synchronous vibration of a neighboring object
     type: FundamentalConcept
     relationships:
-      - type: Resonates With
+      - type: Interacts With
         target: Flow State
 
   - name: Fractal
@@ -260,7 +260,7 @@ concepts:
     description: A system of interconnected people, things, or ideas
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Community
       - type: Manifests As
         target: Society
@@ -269,30 +269,30 @@ concepts:
     description: A social group connected by social, economic, religious, or blood ties
     type: FundamentalConcept
     relationships:
-      - type: Is A
+      - type: Component Of
         target: Community
-      - type: Part Of
+      - type: Component Of
         target: Network
 
   - name: Community
     description: A group of people living in the same place or having characteristics in common
     type: FundamentalConcept
     relationships:
-      - type: Part Of
+      - type: Component Of
         target: Society
 
   - name: Physical
     description: Relating to the body or material existence, as opposed to the mind or spirit
     type: FundamentalConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Body
 
   - name: Medium
     description: An intervening substance through which impressions are conveyed or forces act
     type: BuildingBlockConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Communication
       - type: Facilitates
         target: Information
@@ -303,14 +303,14 @@ concepts:
     relationships:
       - type: Manifests As
         target: Physical
-      - type: Related To
+      - type: Interacts With
         target: Pattern
 
   - name: Abstraction
     description: The quality of dealing with ideas rather than events or concrete objects
     type: BuildingBlockConcept
     relationships:
-      - type: Related To
+      - type: Interacts With
         target: Mathematics
       - type: Influences
         target: Thought
@@ -319,7 +319,7 @@ concepts:
     description: Reasoning conducted according to strict principles of validity
     type: BuildingBlockConcept
     relationships:
-      - type: Part Of
+      - type: Component Of
         target: Reasoning
       - type: Influences
         target: Mathematics
@@ -330,7 +330,7 @@ concepts:
     relationships:
       - type: Influences
         target: Knowledge
-      - type: Related To
+      - type: Interacts With
         target: Wisdom
 
   - name: Basic Perceptions
@@ -350,14 +350,14 @@ concepts:
     description: The act of dedicating resources with the expectation of future benefits
     type: FundamentalConcept
     relationships:
-      - type: Increases
+      - type: Influences
         target: Coherence Score
 
   - name: Reward
     description: A benefit given in recognition of effort, achievement, or contribution
     type: FundamentalConcept
     relationships:
-      - type: Increases
+      - type: Influences
         target: Motivation
 
   - name: Coherence Score
@@ -373,7 +373,7 @@ concepts:
     relationships:
       - type: Generates
         target: Reward
-      - type: Increases
+      - type: Influences
         target: Coherence Score
 
   - name: Coherence Investment System
@@ -388,7 +388,7 @@ concepts:
         target: Coherence Score
       - type: Composed Of
         target: Contribution
-      - type: Increases
+      - type: Influences
         target: Coherence
       - type: Facilitates
         target: Synergy
@@ -401,7 +401,7 @@ concepts:
     relationships:
       - type: Influences
         target: Contribution
-      - type: Related To
+      - type: Interacts With
         target: Intention
       - type: Influences
         target: Investment
@@ -412,38 +412,232 @@ concepts:
     description: A mental state of operation in which a person performing an activity is fully immersed in a feeling of energized focus, full involvement, and enjoyment
     type: FundamentalConcept
 
+  - name: Governance
+    description: The systems and processes that maintain order and facilitate decision-making within the network.
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Network Stability
+
+  - name: Network Stability
+    description: The overall robustness and resilience of the network to changes and external pressures.
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Governance
+
+  - name: Economic System
+    description: The mechanisms and policies governing economic transactions and value distribution within the network.
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Marketplace
+
+  - name: Privacy and Security
+    description: Measures and technologies used to protect user data and ensure the integrity of transactions.
+    type: BuildingBlockConcept
+    relationships:
+      - type: Facilitates
+        target: Trust
+
+  - name: Trust
+    description: The confidence members have in the network's operations and each other.
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Member Interactions
+
+  - name: Scalability
+    description: The ability of the network to handle increased load and complexity without performance degradation.
+    type: BuildingBlockConcept
+    relationships:
+      - type: Facilitates
+        target: Network Growth
+
+  - name: Network Growth
+    description: The expansion of the network in terms of users, transactions, and capabilities.
+    type: FundamentalConcept
+    relationships:
+      - type: Facilitates
+        target: Innovation
+
+  - name: Innovation
+    description: The development of new concepts, technologies, or methods within the network.
+    type: FundamentalConcept
+    relationships:
+      - type: Emergent From
+        target: Collaboration
+
+  - name: Collaboration
+    description: Cooperative efforts between members to achieve common goals.
+    type: BuildingBlockConcept
+    relationships:
+      - type: Facilitates
+        target: Coherence
+
+  - name: Regulatory Compliance
+    description: Adherence to laws and regulations applicable to network operations.
+    type: BuildingBlockConcept
+    relationships:
+      - type: Facilitates
+        target: Governance
+
+  - name: Owner
+    description: An entity possessing rights over concepts or resources within the network, crucial for defining control and responsibilities.
+    type: FundamentalConcept
+    relationships:
+      - type: Has A
+        target: Asset
+      - type: Component Of
+        target: Governance
+
+  - name: Coin
+    description: Serves as the primary currency within the network, facilitating transactions, rewards, and economic interactions.
+    type: FundamentalConcept
+    relationships:
+      - type: Utilizes
+        target: Transaction
+      - type: Influences
+        target: Economic System
+
+  - name: Transaction
+    description: Represents exchanges or transfers within the network, governed by smart contracts to ensure security and compliance.
+    type: FundamentalConcept
+    relationships:
+      - type: Composed Of
+        target: Coin
+      - type: Governed By
+        target: Smart Contract
+
+  - name: Investment
+    description: The commitment of resources with the expectation of future benefits, essential for network growth and innovation.
+    type: FundamentalConcept
+    relationships:
+      - type: Transforms Into
+        target: Return
+      - type: Influences
+        target: Economic Growth
+
+  - name: Contribution
+    description: Inputs by members that add value or support the network's goals, pivotal for sustaining and enhancing the network's operations.
+    type: FundamentalConcept
+    relationships:
+      - type: Generates
+        target: Reward
+      - type: Influences
+        target: Network Coherence
+      - type: Facilitates
+        target: Community Engagement
+
+  - name: Asset
+    description: Any valuable resource, concept, or item owned within the network that can be traded, used, or leveraged.
+    type: FundamentalConcept
+    relationships:
+      - type: Component Of
+        target: Transaction
+      - type: Owned By
+        target: Owner
+
+  - name: Return
+    description: The benefits or gains received from investments or contributions within the network.
+    type: FundamentalConcept
+    relationships:
+      - type: Result Of
+        target: Investment
+      - type: Influences
+        target: Owner Satisfaction
+
+  - name: Reward
+    description: Benefits or recognition given to members for their contributions to the network's goals and coherence.
+    type: FundamentalConcept
+    relationships:
+      - type: Result Of
+        target: Contribution
+      - type: Influences
+        target: Member Motivation
+
+  - name: Community Engagement
+    description: The involvement of network members in activities and decisions that shape the network's development and governance.
+    type: BuildingBlockConcept
+    relationships:
+      - type: Influences
+        target: Network Stability
+      - type: Result Of
+        target: Contribution
+
+  - name: Economic Growth
+    description: The increase in the economic capacity of the network through investments, innovations, and efficient resource management.
+    type: BuildingBlockConcept
+    relationships:
+      - type: Result Of
+        target: Investment
+      - type: Facilitates
+        target: Network Expansion
+
+  - name: Marketplace
+    description: A dynamic platform within the network where members can buy, sell, or trade concepts, assets, and services. It is designed to facilitate economic interactions, ensuring transparency and fair trade practices. The Marketplace leverages the Coin for transactions, is regulated by network governance to maintain integrity, and is supported by smart contracts for secure and automated exchanges.
+    type: FundamentalConcept
+    relationships:
+      - type: Utilizes
+        target: Coin
+      - type: Governed By
+        target: Governance
+      - type: Governed By
+        target: Smart Contract
+
+  - name: Member Interactions
+    description: Encompasses all forms of engagement and communication between members within the network, including collaboration, sharing of resources, and decision-making processes. This concept is pivotal for fostering a collaborative and responsive community environment. It leverages communication tools and is regulated by network governance to ensure productive and respectful exchanges.
+    type: FundamentalConcept
+    relationships:
+      - type: Utilizes
+        target: Communication
+      - type: Governed By
+        target: Governance
+
+  - name: Member Motivation
+    description: The driving forces behind member actions within the network, influenced by rewards, recognition, and the fulfillment of contributing to communal goals.
+    type: FundamentalConcept
+
+  - name: Network Coherence
+    description: The measure of strategic alignment and harmonious functioning across the network, crucial for maintaining systemic stability and collective goal achievement.
+    type: FundamentalConcept
+
+  - name: Network Expansion
+    description: The process of growing the network's scale and scope, including increasing the user base, extending functional capabilities, and broadening the impact area.
+    type: FundamentalConcept
+
+  - name: Owner Satisfaction
+    description: The contentment and approval of owners regarding their investments and the management of their assets within the network.
+    type: FundamentalConcept
+
+  - name: Smart Contract
+    description: Automated, self-executing contracts with the terms directly written into code, providing secure, transparent, and conflict-free transactional operations within the network.
+    type: FundamentalConcept
+
 relationships:
-  - name: Is A
-    description: Indicates that one concept is a type or instance of another
-  - name: Has A
-    description: Indicates that one concept possesses or includes another
-  - name: Related To
-    description: Indicates a general relationship between concepts
-  - name: Influences
-    description: Indicates that one concept has an effect on another
+  - name: Component Of
+    description: Indicates that one concept is a type, instance, or subset of another, covering both hierarchical and part-whole relationships.
+
   - name: Composed Of
-    description: Indicates that one concept is made up of or includes other concepts
-  - name: Manifests As
-    description: Indicates that one concept is a concrete expression or instance of another
-  - name: Emergent From
-    description: Indicates that one concept arises as a result of complex interactions in another
-  - name: Symbiotic With
-    description: Indicates a mutually beneficial relationship between concepts
+    description: Describes the composition of one concept from others, indicating both possession and structural makeup.
+
+  - name: Interacts With
+    description: Covers general linkages, resonances, and catalyst actions between concepts, describing a broad range of interactions.
+
+  - name: Influences
+    description: Encompasses any form of impact one concept has on another, including direct influence, facilitation, and amplification.
+
   - name: Transforms Into
-    description: Indicates that one concept can change or evolve into another
-  - name: Resonates With
-    description: Indicates a harmonious or synchronous relationship between concepts
-  - name: Catalyzes
-    description: Indicates that one concept initiates or accelerates the development or progress of another
-  - name: Opposed To
-    description: Indicates that one concept is in opposition or contrast to another
-  - name: Part Of
-    description: Indicates that one concept is a component or subset of another
-  - name: Contrasts With
-    description: Indicates that one concept is notably different from another in a specific aspect
-  - name: Facilitates
-    description: Indicates that one concept makes another concept easier or more likely to occur
-  - name: Increases
-    description: Indicates that one concept leads to an increase in another
-  - name: Generates
-    description: Indicates that one concept produces or creates another
+    description: Describes both the transformation of one concept into another and the emergence of new concepts from existing interactions.
+
+  - name: Opposes
+    description: Covers both direct opposition and contrasting characteristics between concepts.
+
+  - name: Manifests As
+    description: Indicates how abstract concepts are concretely expressed, bridging the gap between theoretical and practical application.
+
+  - name: Utilizes
+    description: Indicates that one concept employs another for its operations, highlighting functional dependency.
+
+  - name: Governed By
+    description: Encompasses governance, regulation, and security aspects, indicating oversight and control over concepts' operations.

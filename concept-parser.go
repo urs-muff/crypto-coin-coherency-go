@@ -48,6 +48,15 @@ func generateGUID(ctx context.Context, name string) GUID {
 	return GUID(guid)
 }
 
+func findGUID(guid GUID) string {
+	for name, nameGuid := range guidMap {
+		if guid == nameGuid {
+			return name
+		}
+	}
+	return ""
+}
+
 func parseConceptStructure(filename string) (*ConceptStructure, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -81,9 +90,9 @@ func createConcepts(ctx context.Context, node ConceptNode, parentGUID GUID) (*Co
 	}
 
 	if parentGUID != "" {
-		err := createCoreRelationship(ctx, parentGUID, generateGUID(ctx, "Is A"), guid)
+		err := createCoreRelationship(ctx, parentGUID, generateGUID(ctx, "Component Of"), guid)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create 'Is A' relationship for %s: %v", node.Name, err)
+			return nil, fmt.Errorf("failed to create 'Component Of' relationship for %s: %v", node.Name, err)
 		}
 	}
 
@@ -188,13 +197,13 @@ func createCoreRelationship(ctx context.Context, sourceGUID, relationshipTypeGUI
 	// Update the relationships for the source and target concepts
 	sourceConcept, exists := conceptMap[sourceGUID]
 	if !exists {
-		return fmt.Errorf("source concept with GUID %s not found", sourceGUID)
+		return fmt.Errorf("source concept with GUID %s => (%s) not found", sourceGUID, findGUID(targetGUID))
 	}
 	sourceConcept.Relationships = append(sourceConcept.Relationships, relationshipID)
 
 	targetConcept, exists := conceptMap[targetGUID]
 	if !exists {
-		return fmt.Errorf("target concept with GUID %s not found", targetGUID)
+		return fmt.Errorf("target concept with GUID %s => (%s) not found", targetGUID, findGUID(targetGUID))
 	}
 	targetConcept.Relationships = append(targetConcept.Relationships, relationshipID)
 
