@@ -1,0 +1,449 @@
+concepts:
+  - name: Concept
+    description: A fundamental unit of knowledge or idea
+    type: ConceptType
+    children:
+      - name: Relationship
+        description: A connection or association between concepts
+        type: ConceptType
+      - name: Interaction
+        description: A type of action that can occur between concepts or within relationships
+        type: ConceptType
+
+  - name: Technology
+    description: Tools and knowledge used to solve problems or improve conditions
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Society
+      - type: Composed Of
+        target: Process
+
+  - name: Self
+    description: The essential qualities that make a person distinct from all others
+    type: FundamentalConcept
+    relationships:
+      - type: Manifests As
+        target: Individual Expression
+      - type: Composed Of
+        target: Intention
+
+  - name: Ego
+    description: The part of the mind that mediates between the conscious and the unconscious
+    type: FundamentalConcept
+
+  - name: Mathematics
+    description: The abstract science of number, quantity, and space
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Abstraction
+
+  - name: Knowledge
+    description: Facts, information, and skills acquired through experience or education
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Wisdom
+      - type: Composed Of
+        target: Information
+
+  - name: Wisdom
+    description: The quality of having experience, knowledge, and good judgment
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Transformation
+
+  - name: Experience
+    description: Practical contact with and observation of facts or events
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Knowledge
+      - type: Composed Of
+        target: Perception
+
+  - name: Property
+    description: A quality or characteristic belonging to or representative of something
+    type: FundamentalConcept
+
+  - name: Soul
+    description: The spiritual or immaterial part of a human being or animal
+    type: FundamentalConcept
+
+  - name: Body
+    description: The physical structure of a person or animal
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Mind
+
+  - name: Mind
+    description: The element of a person that enables them to be aware of the world and their experiences
+    type: FundamentalConcept
+    relationships:
+      - type: Composed Of
+        target: Ego
+
+  - name: Boundary
+    description: A line that marks the limits of an area or conceptual division
+    type: FundamentalConcept
+
+  - name: Dualism
+    description: The division of something conceptually into two opposed or contrasted aspects
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Boundary
+
+  - name: Space
+    description: A continuous area or expanse that is free, available, or unoccupied
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Time
+
+  - name: Time
+    description: The indefinite continued progress of existence and events in the past, present, and future
+    type: FundamentalConcept
+
+  - name: Individual Expression
+    description: The unique way an individual communicates or manifests their personality or feelings
+    type: FundamentalConcept
+
+  - name: Society
+    description: The aggregate of people living together in a more or less ordered community
+    type: FundamentalConcept
+    relationships:
+      - type: Composed Of
+        target: Communication
+
+  - name: Unity
+    description: The state of being united or joined as a whole
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Coherence
+      - type: Influences
+        target: Society
+      - type: Related To
+        target: Emergence
+
+  - name: Coherence
+    description: The quality of forming a unified whole; logical interconnection
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Flow State
+      - type: Related To
+        target: Wisdom
+      - type: Related To
+        target: Pattern
+
+  - name: Information
+    description: Data, facts, or knowledge that can be communicated or received
+    type: BuildingBlockConcept
+
+  - name: Energy
+    description: The capacity to do work or cause change in a system
+    type: BuildingBlockConcept
+    relationships:
+      - type: Related To
+        target: Flow State
+
+  - name: Consciousness
+    description: The state of being aware of and responsive to one's surroundings
+    type: BuildingBlockConcept
+
+  - name: Pattern
+    description: A recurring theme, structure, or behavior in a system
+    type: BuildingBlockConcept
+
+  - name: Process
+    description: A series of actions or steps taken to achieve a particular end
+    type: BuildingBlockConcept
+
+  - name: Intention
+    description: A purposeful plan or aim guiding one's actions
+    type: BuildingBlockConcept
+
+  - name: Perception
+    description: The ability to see, hear, or become aware of something through the senses
+    type: BuildingBlockConcept
+
+  - name: Communication
+    description: The exchange of information between entities
+    type: BuildingBlockConcept
+
+  - name: Transformation
+    description: A thorough or dramatic change in form, appearance, or character
+    type: BuildingBlockConcept
+
+  - name: Emergence
+    description: The process of coming into existence or prominence
+    type: BuildingBlockConcept
+
+  - name: Complexity
+    description: The state of having many interconnected parts or intricate details
+    type: FundamentalConcept
+    relationships:
+      - type: Emergent From
+        target: Pattern
+
+  - name: Order
+    description: The arrangement or disposition of people or things in relation to each other according to a particular sequence, pattern, or method
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Coherence
+      - type: Opposed To
+        target: Chaos
+
+  - name: Chaos
+    description: Complete disorder and confusion
+    type: FundamentalConcept
+    relationships:
+      - type: Transforms Into
+        target: Order
+
+  - name: Symmetry
+    description: The quality of being made up of exactly similar parts facing each other or around an axis
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Pattern
+
+  - name: Entropy
+    description: A measure of the disorder or randomness in a system
+    type: FundamentalConcept
+    relationships:
+      - type: Opposed To
+        target: Order
+
+  - name: Synergy
+    description: The interaction or cooperation of two or more organizations, substances, or other agents to produce a combined effect greater than the sum of their separate effects
+    type: FundamentalConcept
+    relationships:
+      - type: Emergent From
+        target: Relationship
+
+  - name: Resonance
+    description: The reinforcement or prolongation of sound by reflection from a surface or by the synchronous vibration of a neighboring object
+    type: FundamentalConcept
+    relationships:
+      - type: Resonates With
+        target: Flow State
+
+  - name: Fractal
+    description: A never-ending pattern that repeats itself at different scales
+    type: FundamentalConcept
+    relationships:
+      - type: Manifests As
+        target: Pattern
+
+  - name: Dynamics
+    description: The forces or properties which stimulate growth, development, or change within a system or process
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Process
+
+  - name: Potential
+    description: Latent qualities or abilities that may be developed and lead to future success or usefulness
+    type: FundamentalConcept
+    relationships:
+      - type: Transforms Into
+        target: Energy
+
+  - name: Network
+    description: A system of interconnected people, things, or ideas
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Community
+      - type: Manifests As
+        target: Society
+
+  - name: Tribe
+    description: A social group connected by social, economic, religious, or blood ties
+    type: FundamentalConcept
+    relationships:
+      - type: Is A
+        target: Community
+      - type: Part Of
+        target: Network
+
+  - name: Community
+    description: A group of people living in the same place or having characteristics in common
+    type: FundamentalConcept
+    relationships:
+      - type: Part Of
+        target: Society
+
+  - name: Physical
+    description: Relating to the body or material existence, as opposed to the mind or spirit
+    type: FundamentalConcept
+    relationships:
+      - type: Related To
+        target: Body
+
+  - name: Medium
+    description: An intervening substance through which impressions are conveyed or forces act
+    type: BuildingBlockConcept
+    relationships:
+      - type: Related To
+        target: Communication
+      - type: Facilitates
+        target: Information
+
+  - name: Form
+    description: The visible shape or configuration of something
+    type: BuildingBlockConcept
+    relationships:
+      - type: Manifests As
+        target: Physical
+      - type: Related To
+        target: Pattern
+
+  - name: Abstraction
+    description: The quality of dealing with ideas rather than events or concrete objects
+    type: BuildingBlockConcept
+    relationships:
+      - type: Related To
+        target: Mathematics
+      - type: Influences
+        target: Thought
+
+  - name: Logic
+    description: Reasoning conducted according to strict principles of validity
+    type: BuildingBlockConcept
+    relationships:
+      - type: Part Of
+        target: Reasoning
+      - type: Influences
+        target: Mathematics
+
+  - name: Reasoning
+    description: The action of thinking about something in a logical way
+    type: BuildingBlockConcept
+    relationships:
+      - type: Influences
+        target: Knowledge
+      - type: Related To
+        target: Wisdom
+
+  - name: Basic Perceptions
+    description: Fundamental sensory experiences that form the basis of more complex cognition
+    type: BuildingBlockConcept
+    relationships:
+      - type: Influences
+        target: Experience
+      - type: Composed Of
+        target: Perception
+
+  - name: Thought
+    description: An idea or mental image formed by thinking
+    type: FundamentalConcept
+
+  - name: Investment
+    description: The act of dedicating resources with the expectation of future benefits
+    type: FundamentalConcept
+    relationships:
+      - type: Increases
+        target: Coherence Score
+
+  - name: Reward
+    description: A benefit given in recognition of effort, achievement, or contribution
+    type: FundamentalConcept
+    relationships:
+      - type: Increases
+        target: Motivation
+
+  - name: Coherence Score
+    description: A measure of alignment and harmony within a system or network
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Reward
+
+  - name: Contribution
+    description: An action or input that adds value or supports the goals of a system
+    type: FundamentalConcept
+    relationships:
+      - type: Generates
+        target: Reward
+      - type: Increases
+        target: Coherence Score
+
+  - name: Coherence Investment System
+    description: A system that incentivizes and rewards actions that increase overall coherence
+    type: FundamentalConcept
+    relationships:
+      - type: Composed Of
+        target: Investment
+      - type: Composed Of
+        target: Reward
+      - type: Composed Of
+        target: Coherence Score
+      - type: Composed Of
+        target: Contribution
+      - type: Increases
+        target: Coherence
+      - type: Facilitates
+        target: Synergy
+      - type: Influences
+        target: Motivation
+
+  - name: Motivation
+    description: The reason or reasons one has for acting or behaving in a particular way
+    type: FundamentalConcept
+    relationships:
+      - type: Influences
+        target: Contribution
+      - type: Related To
+        target: Intention
+      - type: Influences
+        target: Investment
+      - type: Facilitates
+        target: Flow State
+
+  - name: Flow State
+    description: A mental state of operation in which a person performing an activity is fully immersed in a feeling of energized focus, full involvement, and enjoyment
+    type: FundamentalConcept
+
+relationships:
+  - name: Is A
+    description: Indicates that one concept is a type or instance of another
+  - name: Has A
+    description: Indicates that one concept possesses or includes another
+  - name: Related To
+    description: Indicates a general relationship between concepts
+  - name: Influences
+    description: Indicates that one concept has an effect on another
+  - name: Composed Of
+    description: Indicates that one concept is made up of or includes other concepts
+  - name: Manifests As
+    description: Indicates that one concept is a concrete expression or instance of another
+  - name: Emergent From
+    description: Indicates that one concept arises as a result of complex interactions in another
+  - name: Symbiotic With
+    description: Indicates a mutually beneficial relationship between concepts
+  - name: Transforms Into
+    description: Indicates that one concept can change or evolve into another
+  - name: Resonates With
+    description: Indicates a harmonious or synchronous relationship between concepts
+  - name: Catalyzes
+    description: Indicates that one concept initiates or accelerates the development or progress of another
+  - name: Opposed To
+    description: Indicates that one concept is in opposition or contrast to another
+  - name: Part Of
+    description: Indicates that one concept is a component or subset of another
+  - name: Contrasts With
+    description: Indicates that one concept is notably different from another in a specific aspect
+  - name: Facilitates
+    description: Indicates that one concept makes another concept easier or more likely to occur
+  - name: Increases
+    description: Indicates that one concept leads to an increase in another
+  - name: Generates
+    description: Indicates that one concept produces or creates another

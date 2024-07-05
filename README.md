@@ -1,1 +1,1 @@
-# crypto-coin-coherency-go
+# Crypto Coherency Network: Go backend
