@@ -552,13 +552,9 @@ concepts:
     description: The process of growing the network's scale and scope, including increasing the user base, extending functional capabilities, and broadening the impact area.
     type: FundamentalConcept
 
-  - name: Owner Satisfaction
-    description: The contentment and approval of owners regarding their investments and the management of their assets within the network.
-    type: FundamentalConcept
-
   # Core System Concepts
-  - name: Owner
-    description: An entity possessing rights over concepts or resources within the network, crucial for defining control and responsibilities.
+  - name: Steward
+    description: A participant who cares for and nurtures the network, emphasizing responsibility and guardianship rather than ownership.
     type: SystemConcept
     relationships:
       - type: Composed Of
@@ -603,9 +599,6 @@ concepts:
   - name: Return
     description: The benefits or gains received from investments or contributions within the network.
     type: SystemConcept
-    relationships:
-      - type: Influences
-        target: Owner Satisfaction
 
   - name: Smart Contract
     description: Automated, self-executing contracts with the terms directly written into code, providing secure, transparent, and conflict-free transactional operations within the network.

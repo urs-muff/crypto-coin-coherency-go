@@ -51,29 +51,29 @@ func getConcept_h(c *gin.Context) {
 	c.JSON(http.StatusOK, concept)
 }
 
-func updateOwner_h(c *gin.Context) {
-	var ownerInstance OwnerInstance
-	if err := c.BindJSON(&ownerInstance); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid owner data"})
+func updateSteward_h(c *gin.Context) {
+	var stewardInstance StewardInstance
+	if err := c.BindJSON(&stewardInstance); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid steward data"})
 		return
 	}
 
-	ownerInstance.ConceptID = OwnerConcept
-	ownerInstance.InstanceID = ownerGUID
-	ownerInstance.Timestamp = time.Now()
+	stewardInstance.ConceptID = StewardConcept
+	stewardInstance.InstanceID = stewardID
+	stewardInstance.Timestamp = time.Now()
 
-	addOrUpdateInstance(c.Request.Context(), &ownerInstance, peerID)
+	addOrUpdateInstance(c.Request.Context(), &stewardInstance, peerID)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Owner updated successfully", "guid": ownerInstance.InstanceID})
+	c.JSON(http.StatusOK, gin.H{"message": "Steward updated successfully", "guid": stewardInstance.InstanceID})
 }
 
-func getOwner_h(c *gin.Context) {
-	ownerInstance, exists := instanceMap[ownerGUID]
+func getSteward_h(c *gin.Context) {
+	stewardInstance, exists := instanceMap[stewardID]
 	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Owner not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Steward not found"})
 		return
 	}
-	c.JSON(http.StatusOK, ownerInstance)
+	c.JSON(http.StatusOK, stewardInstance)
 }
 
 func deleteConcept_h(c *gin.Context) {

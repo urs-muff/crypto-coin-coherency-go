@@ -15,7 +15,7 @@ func listPeers_h(c *gin.Context) {
 
 	filteredPeerMap := make(map[PeerID]Peer_i)
 	for peerID, peer := range peerMap {
-		if peer.GetOwnerGUID() != "" {
+		if peer.GetStewardID() != "" {
 			filteredPeerMap[peerID] = peer
 		}
 	}
@@ -23,14 +23,14 @@ func listPeers_h(c *gin.Context) {
 	c.JSON(http.StatusOK, filteredPeerMap)
 }
 
-func addOrUpdatePeer(ctx context.Context, peerID PeerID, ownerGUID InstanceGUID) {
+func addOrUpdatePeer(ctx context.Context, peerID PeerID, stewardID InstanceGUID) {
 	peerMapMu.Lock()
 	defer peerMapMu.Unlock()
 
 	if _, ok := peerMap[peerID]; !ok {
 		peerMap[peerID] = &Peer{
 			ID:        peerID,
-			OwnerGUID: ownerGUID,
+			StewardID: stewardID,
 			Timestamp: time.Now(),
 		}
 		log.Printf("Added peer: %s", peerID)

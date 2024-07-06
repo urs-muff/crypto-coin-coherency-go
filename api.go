@@ -26,7 +26,7 @@ type ConceptGUID2CIDMap map[ConceptGUID]CID
 // Peer_i represents a peer in the network
 type Peer_i interface {
 	GetID() PeerID
-	GetOwnerGUID() InstanceGUID
+	GetStewardID() InstanceGUID
 
 	AddConceptCID(cid CID)
 	RemoveConceptCID(cid CID)
@@ -54,10 +54,10 @@ type Network_i interface {
 	List(ctx context.Context) ([]CID, error)
 
 	// Load loads data from a given path in the network
-	Load(ctx context.Context, path string, target interface{}) error
+	Load(ctx context.Context, path string, target any) error
 
 	// Save saves data to a given path in the network
-	Save(ctx context.Context, path string, data interface{}) error
+	Save(ctx context.Context, path string, data any) error
 
 	// Publish publishes a message to a topic
 	Publish(ctx context.Context, topic string, data []byte) error
@@ -163,14 +163,14 @@ func (r *Relationship) Deepen() {
 // ConcretePeer implements the Peer_i interface
 type Peer struct {
 	ID           PeerID
-	OwnerGUID    InstanceGUID
+	StewardID    InstanceGUID
 	ConceptCIDs  map[CID]bool
 	InstanceCIDs map[CID]bool
 	Timestamp    time.Time
 }
 
 func (p Peer) GetID() PeerID              { return p.ID }
-func (p Peer) GetOwnerGUID() InstanceGUID { return p.OwnerGUID }
+func (p Peer) GetStewardID() InstanceGUID { return p.StewardID }
 
 func (p *Peer) AddConceptCID(cid CID)    { p.ConceptCIDs[cid] = true }
 func (p *Peer) RemoveConceptCID(cid CID) { delete(p.ConceptCIDs, cid) }
@@ -197,13 +197,13 @@ func (p Peer) GetTimestamp() time.Time { return p.Timestamp }
 func (p *Peer) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		ID           PeerID
-		OwnerGUID    InstanceGUID
+		StewardID    InstanceGUID
 		ConceptCIDs  []CID
 		InstanceCIDs []CID
 		Timestamp    time.Time
 	}{
 		ID:           p.ID,
-		OwnerGUID:    p.OwnerGUID,
+		StewardID:    p.StewardID,
 		ConceptCIDs:  p.GetConceptCIDs(),
 		InstanceCIDs: p.GetInstanceCIDs(),
 		Timestamp:    p.Timestamp,
@@ -213,7 +213,7 @@ func (p *Peer) MarshalJSON() ([]byte, error) {
 func (p *Peer) UnmarshalJSON(data []byte) error {
 	var temp struct {
 		ID           PeerID
-		OwnerGUID    InstanceGUID
+		StewardID    InstanceGUID
 		ConceptCIDs  []CID
 		InstanceCIDs []CID
 		Timestamp    time.Time
@@ -224,7 +224,7 @@ func (p *Peer) UnmarshalJSON(data []byte) error {
 	}
 
 	p.ID = temp.ID
-	p.OwnerGUID = temp.OwnerGUID
+	p.StewardID = temp.StewardID
 	p.Timestamp = temp.Timestamp
 	p.ConceptCIDs = make(map[CID]bool)
 	for _, cid := range temp.ConceptCIDs {
@@ -240,7 +240,7 @@ func (p *Peer) UnmarshalJSON(data []byte) error {
 
 type PeerMessage struct {
 	PeerID        PeerID
-	OwnerGUID     InstanceGUID
+	StewardID     InstanceGUID
 	ConceptCIDs   []CID
 	InstanceCIDs  []CID
 	Relationships RelationshipMap
@@ -268,8 +268,8 @@ var (
 	peerMapMu sync.RWMutex
 	peerID    PeerID
 
-	ownerGUID InstanceGUID
-	ownerMu   sync.RWMutex
+	stewardID InstanceGUID
+	stewardMu sync.RWMutex
 
 	instanceMap    ConceptInstanceMap
 	instanceID2CID InstanceGUID2CIDMap

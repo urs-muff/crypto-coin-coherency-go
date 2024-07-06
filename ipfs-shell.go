@@ -124,7 +124,7 @@ func (i *IPFSShell) ID(ctx context.Context) (PeerID, error) {
 	return PeerID(info.ID), nil
 }
 
-func (i *IPFSShell) Load(ctx context.Context, path string, target interface{}) error {
+func (i *IPFSShell) Load(ctx context.Context, path string, target any) error {
 	data, err := i.sh.FilesRead(ctx, path)
 	if err != nil {
 		return fmt.Errorf("failed to read file from IPFS: %v", err)
@@ -139,7 +139,7 @@ func (i *IPFSShell) Load(ctx context.Context, path string, target interface{}) e
 	return nil
 }
 
-func (i *IPFSShell) Save(ctx context.Context, path string, data interface{}) error {
+func (i *IPFSShell) Save(ctx context.Context, path string, data any) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %v", err)

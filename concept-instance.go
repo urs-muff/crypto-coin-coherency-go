@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 	"time"
@@ -15,7 +16,7 @@ type InstanceGUID GUID
 type InstanceGUID2CIDMap map[InstanceGUID]CID
 
 var (
-	OwnerConcept             ConceptGUID
+	StewardConcept           ConceptGUID
 	AssetConcept             ConceptGUID
 	CoinConcept              ConceptGUID
 	SmartContractConcept     ConceptGUID
@@ -31,6 +32,8 @@ type ConceptInstance_i interface {
 	SetCID(cid CID)
 
 	Update(ctx context.Context) error
+
+	Instance() *ConceptInstance
 }
 
 // ConceptInstance base structure for all instances of concepts
@@ -43,17 +46,77 @@ type ConceptInstance struct {
 	Timestamp   time.Time
 }
 
-// OwnerInstance represents an entity that can own assets and make investments
-type OwnerInstance struct {
+type CoinValue_i interface {
+	Value() float64
+}
+
+type CoherenceScore_i interface {
+	Score(ctx context.Context, other CoherenceScore_i) float64
+}
+
+type CoherenceVector_i interface {
+	Values(ctx context.Context) []float64
+}
+
+type Copy_i interface {
+	Copy(ctx context.Context) (ConceptInstance_i, error)
+}
+
+type Merge_i interface {
+	Merge(ctx context.Context, other ConceptInstance_i) (ConceptInstance_i, error)
+}
+
+type Move_i interface {
+	Move(ctx context.Context, from ConceptInstance_i, to ConceptInstance_i) error
+}
+
+type Transform_i interface {
+	Transform(ctx context.Context, conceptID ConceptGUID) (ConceptInstance_i, error)
+}
+
+type Parent_i interface {
+	Parent() (ConceptInstance_i, error)
+}
+
+type Children_i interface {
+	Children() ([]ConceptInstance_i, error)
+}
+
+type Related_i interface {
+	Related() ([]ConceptInstance_i, error)
+}
+
+type RelatedByConcept_i interface {
+	RelatedByConcept(conceptID ConceptGUID) ([]ConceptInstance_i, error)
+}
+
+type RelatedByName_i interface {
+	RelatedByName(name string) ([]ConceptInstance_i, error)
+}
+
+type Stream_i interface {
+	Read(ctx context.Context) (io.ReadCloser, error)
+}
+
+type Render_i interface {
+	Render(ctx context.Context) (io.ReadCloser, error)
+}
+
+type RenderAs_i interface {
+	RenderAs(ctx context.Context, contentType string) (io.ReadCloser, error)
+}
+
+// StewardInstance represents an entity that can own assets and make investments
+type StewardInstance struct {
 	*ConceptInstance
-	OwnedAssets []InstanceGUID // List of asset IDs the owner possesses
-	Investments []InstanceGUID // Investments made by the owner
+	StewardAssets []InstanceGUID // List of asset IDs the steward cares for
+	Investments   []InstanceGUID // Investments made by the steward
 }
 
 // Asset represents a valuable item or resource within the network
 type AssetInstance struct {
 	*ConceptInstance
-	Owner InstanceGUID // ID of the owner
+	Steward InstanceGUID // ID of the steward
 }
 
 // Coin represents units of currency used within the network for transactions
@@ -78,7 +141,7 @@ type ContractEvaluatorInstance struct {
 // Investment is a type of transaction with associated smart contracts
 type InvestmentInstance struct {
 	*ConceptInstance
-	Owner         InstanceGUID // Owner of the investment
+	Steward       InstanceGUID // Steward of the investment
 	Asset         InstanceGUID // Asset involved in the investment
 	SmartContract InstanceGUID // Associated smart contract
 }
@@ -86,10 +149,10 @@ type InvestmentInstance struct {
 // Transaction represents an exchange or transfer of assets, coins, or services
 type TransactionInstance struct {
 	*ConceptInstance
-	FromOwner InstanceGUID // ID of the owner sending the asset or coins
-	ToOwner   InstanceGUID // ID of the owner receiving the asset or coins
-	Asset     InstanceGUID // Asset being transacted, if applicable
-	Coin      InstanceGUID // Coin being transacted, if applicable
+	FromSteward InstanceGUID // ID of the steward sending the asset or coins
+	ToSteward   InstanceGUID // ID of the steward receiving the asset or coins
+	Asset       InstanceGUID // Asset being transacted, if applicable
+	Coin        InstanceGUID // Coin being transacted, if applicable
 }
 
 // Return represents the benefits or gains from investments
@@ -111,6 +174,10 @@ func (ci *ConceptInstance) SetCID(cid CID) {
 	ci.CID = cid
 }
 
+func (ci *ConceptInstance) Instance() *ConceptInstance {
+	return ci
+}
+
 func (ci *ConceptInstance) DefaultUpdate(ctx context.Context, json json.RawMessage) error {
 	// DEBUG: oldCID := ci.CID
 	if ci.CID != "" {
@@ -130,6 +197,10 @@ func (ci *ConceptInstance) DefaultUpdate(ctx context.Context, json json.RawMessa
 	return nil
 }
 
+func (ci ConceptInstance) URI() string {
+	return "ipfs://" + string(ci.CID)
+}
+
 func (id InstanceGUID) AsInstance() ConceptInstance_i {
 	inst, ok := instanceMap[id]
 	if ok {
@@ -138,11 +209,11 @@ func (id InstanceGUID) AsInstance() ConceptInstance_i {
 	return nil
 }
 
-func (id InstanceGUID) AsOwnerInstance() *OwnerInstance {
+func (id InstanceGUID) AsStewardInstance() *StewardInstance {
 	inst := id.AsInstance()
-	owner, ok := inst.(*OwnerInstance)
+	steward, ok := inst.(*StewardInstance)
 	if ok {
-		return owner
+		return steward
 	}
 	return nil
 }
@@ -189,32 +260,32 @@ func (ci *ConceptInstance) DefaultString() string {
 
 func (ci *ConceptInstance) String() string { return ci.DefaultString() }
 
-func NewOwnerInstance(name string, desc string) *OwnerInstance {
-	return &OwnerInstance{
-		ConceptInstance: NewConceptInstance(OwnerConcept, name, desc),
-		OwnedAssets:     []InstanceGUID{},
+func NewStewardInstance(name string, desc string) *StewardInstance {
+	return &StewardInstance{
+		ConceptInstance: NewConceptInstance(StewardConcept, name, desc),
+		StewardAssets:   []InstanceGUID{},
 		Investments:     []InstanceGUID{},
 	}
 }
 
-func (i *OwnerInstance) String() string {
-	return fmt.Sprintf("%s [OwnedAssets=%v, Investments=%v]", i.DefaultString(), i.OwnedAssets, i.Investments)
+func (i *StewardInstance) String() string {
+	return fmt.Sprintf("%s [OwnedAssets=%v, Investments=%v]", i.DefaultString(), i.StewardAssets, i.Investments)
 }
 
-func (i *OwnerInstance) Update(ctx context.Context) error {
+func (i *StewardInstance) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewAssetInstance(name string, desc string, owner InstanceGUID) *AssetInstance {
+func NewAssetInstance(name string, desc string, steward InstanceGUID) *AssetInstance {
 	return &AssetInstance{
 		ConceptInstance: NewConceptInstance(AssetConcept, name, desc),
-		Owner:           owner,
+		Steward:         steward,
 	}
 }
 
 func (ci *AssetInstance) String() string {
-	return fmt.Sprintf("%s, Owner=[%s]", ci.DefaultString(), ci.Owner.AsOwnerInstance().AsString())
+	return fmt.Sprintf("%s, Steward=[%s]", ci.DefaultString(), ci.Steward.AsStewardInstance().AsString())
 }
 
 func (i *AssetInstance) Update(ctx context.Context) error {
@@ -259,10 +330,10 @@ func (i *ContractEvaluatorInstance) Update(ctx context.Context) error {
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewInvestmentInstance(name string, desc string, owner InstanceGUID, asset InstanceGUID, smartContract InstanceGUID) *InvestmentInstance {
+func NewInvestmentInstance(name string, desc string, steward InstanceGUID, asset InstanceGUID, smartContract InstanceGUID) *InvestmentInstance {
 	return &InvestmentInstance{
 		ConceptInstance: NewConceptInstance(InvestmentConcept, name, desc),
-		Owner:           owner,
+		Steward:         steward,
 		Asset:           asset,
 		SmartContract:   smartContract,
 	}
@@ -273,11 +344,11 @@ func (i *InvestmentInstance) Update(ctx context.Context) error {
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewTransactionInstance(name string, desc string, fromOwner InstanceGUID, toOwner InstanceGUID, asset InstanceGUID, coin InstanceGUID) *TransactionInstance {
+func NewTransactionInstance(name string, desc string, fromSteward InstanceGUID, toSteward InstanceGUID, asset InstanceGUID, coin InstanceGUID) *TransactionInstance {
 	return &TransactionInstance{
 		ConceptInstance: NewConceptInstance(TransactionConcept, name, desc),
-		FromOwner:       fromOwner,
-		ToOwner:         toOwner,
+		FromSteward:     fromSteward,
+		ToSteward:       toSteward,
 		Asset:           asset,
 		Coin:            coin,
 	}
@@ -307,8 +378,8 @@ var unmarshalInstanceFuncs map[ConceptGUID]UnmarshalInstanceFunc
 
 func initInstanceUnmarshal() {
 	unmarshalInstanceFuncs = map[ConceptGUID]UnmarshalInstanceFunc{
-		OwnerConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*OwnerInstance](data)
+		StewardConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
+			return genericUnmarshalInstance[*StewardInstance](data)
 		},
 		AssetConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
 			return genericUnmarshalInstance[*AssetInstance](data)

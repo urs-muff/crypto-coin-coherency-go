@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func saveData(ctx context.Context, path string, data interface{}) error {
+func saveData(ctx context.Context, path string, data any) error {
 	if err := network.Save(ctx, path, data); err != nil {
 		log.Printf("Failed to save data at %s: %v", path, err)
 		return err
@@ -66,7 +66,7 @@ func publishPeerMessage(ctx context.Context) {
 
 	message := PeerMessage{
 		PeerID:        peerID,
-		OwnerGUID:     peer.GetOwnerGUID(),
+		StewardID:     peer.GetStewardID(),
 		ConceptCIDs:   conceptCIDs,
 		InstanceCIDs:  instanceCIDs,
 		Relationships: relationshipMap,

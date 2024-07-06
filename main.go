@@ -45,8 +45,8 @@ func setupRoutes(r *gin.Engine) {
 	r.Use(corsMiddleware())
 	r.POST("/concept", addConcept_h)
 	r.GET("/concept/:guid", getConcept_h)
-	r.POST("/owner", updateOwner_h)
-	r.GET("/owner", getOwner_h)
+	r.POST("/steward", updateSteward_h)
+	r.GET("/steward", getSteward_h)
 	r.DELETE("/concept/:guid", deleteConcept_h)
 	r.GET("/concepts", queryConcepts_h)
 	r.GET("/peers", listPeers_h)
@@ -108,7 +108,7 @@ func initializeLists(ctx context.Context) {
 		log.Printf("Failed to load peer list: %v\n", err)
 	}
 	for id, peer := range peerMap {
-		if peer.GetOwnerGUID() == "" {
+		if peer.GetStewardID() == "" {
 			delete(peerMap, id)
 		}
 	}
@@ -136,7 +136,7 @@ func initializeLists(ctx context.Context) {
 			guidMap[concept.Name] = id
 		}
 	}
-	OwnerConcept = findGUID("Owner")
+	StewardConcept = findGUID("Steward")
 	AssetConcept = findGUID("Asset")
 	CoinConcept = findGUID("Coin")
 	SmartContractConcept = findGUID("Smart Contract")
@@ -153,8 +153,8 @@ func initializeLists(ctx context.Context) {
 		log.Printf("Failed to load instance: %v\n", err)
 	}
 
-	loadOrCreateOwner(ctx)
-	peerMap[peerID].(*Peer).OwnerGUID = ownerGUID
+	loadOrCreateSteward(ctx)
+	peerMap[peerID].(*Peer).StewardID = stewardID
 	savePeerList(ctx)
 
 	json, _ := json.Marshal(peerMap[peerID])
@@ -179,32 +179,32 @@ func initializeLists(ctx context.Context) {
 	}
 }
 
-func loadOrCreateOwner(ctx context.Context) {
+func loadOrCreateSteward(ctx context.Context) {
 	var guid InstanceGUID
-	err := network.Load(ctx, ownerGUIDPath, &guid)
+	err := network.Load(ctx, stewardGUIDPath, &guid)
 	if err != nil {
-		log.Printf("Failed to load owner GUID from IPFS: %v", err)
-		log.Println("Generating new owner GUID...")
+		log.Printf("Failed to load Steward ID from IPFS: %v", err)
+		log.Println("Generating new Steward ID...")
 		guid = InstanceGUID(uuid.New().String())
-		if err := network.Save(ctx, ownerGUIDPath, guid); err != nil {
-			log.Fatalf("Failed to save new owner GUID: %v", err)
+		if err := network.Save(ctx, stewardGUIDPath, guid); err != nil {
+			log.Fatalf("Failed to save new Steward ID: %v", err)
 		}
 	}
 
-	ownerMu.Lock()
-	ownerGUID = guid
-	ownerMu.Unlock()
+	stewardMu.Lock()
+	stewardID = guid
+	stewardMu.Unlock()
 
-	log.Printf("Owner GUID: %s", ownerGUID)
-	_, ok := instanceID2CID[ownerGUID]
+	log.Printf("Steward ID: %s", stewardID)
+	_, ok := instanceID2CID[stewardID]
 	if !ok {
-		owner := NewOwnerInstance("Urs Muff", "Creator of this network")
-		owner.InstanceID = ownerGUID
-		addOrUpdateInstance(ctx, owner, peerID)
-		asset1 := NewAssetInstance("First Thing", "", owner.InstanceID)
+		steward := NewStewardInstance("Urs Muff", "Creator of this network")
+		steward.InstanceID = stewardID
+		addOrUpdateInstance(ctx, steward, peerID)
+		asset1 := NewAssetInstance("First Thing", "", steward.InstanceID)
 		addOrUpdateInstance(ctx, asset1, peerID)
-		owner.OwnedAssets = append(owner.OwnedAssets, asset1.InstanceID)
-		addOrUpdateInstance(ctx, owner, peerID)
+		steward.StewardAssets = append(steward.StewardAssets, asset1.InstanceID)
+		addOrUpdateInstance(ctx, steward, peerID)
 		if err := network.Load(ctx, instancesPath, &instanceMap); err != nil {
 			log.Printf("Failed to load instance: %v\n", err)
 		}
@@ -212,7 +212,7 @@ func loadOrCreateOwner(ctx context.Context) {
 		// peerJson, _ := json.Marshal(peerMap[peerID])
 		// fmt.Printf("Peer: %s\n", string(peerJson))
 
-		// cid := instanceID2CID[ownerGUID]
+		// cid := instanceID2CID[stewardID]
 		//
 		// if instance, err := cid.AsInstanceConcept(ctx); err != nil {
 		// 	log.Fatalf("Unable to parse Concept: %s: %v", cid, err)

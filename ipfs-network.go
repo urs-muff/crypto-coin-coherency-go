@@ -14,7 +14,7 @@ import (
 
 const (
 	peerListPath      = "/ccn/peer-list.json"
-	ownerGUIDPath     = "/ccn/owner-guid.json"
+	stewardGUIDPath   = "/ccn/steward-guid.json"
 	relationshipsPath = "/ccn/relationships.json"
 
 	conceptsPath      = "/ccn/concepts.json"
@@ -97,7 +97,7 @@ func sendPeerList(conn *websocket.Conn) {
 
 	filteredPeerMap := make(map[PeerID]Peer_i)
 	for peerID, peer := range peerMap {
-		if peer.GetOwnerGUID() != "" {
+		if peer.GetStewardID() != "" {
 			filteredPeerMap[peerID] = peer
 		}
 	}
@@ -109,7 +109,7 @@ func sendPeerList(conn *websocket.Conn) {
 	}
 }
 
-func sendJSONList(conn *websocket.Conn, list interface{}, mu sync.Locker, itemType string) {
+func sendJSONList(conn *websocket.Conn, list any, mu sync.Locker, itemType string) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -130,7 +130,7 @@ func handleReceivedMessage(data []byte) {
 	log.Printf("Received message from peer: %s", message.PeerID)
 
 	// Add or update the sender in the peer list
-	addOrUpdatePeer(context.Background(), message.PeerID, message.OwnerGUID)
+	addOrUpdatePeer(context.Background(), message.PeerID, message.StewardID)
 
 	// Update local relationships with received ones
 	for id, relationship := range message.Relationships {
