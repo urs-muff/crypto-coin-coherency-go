@@ -44,14 +44,23 @@ func main() {
 func setupRoutes(r *gin.Engine) {
 	r.Use(corsMiddleware())
 	r.POST("/concept", addConcept_h)
+	r.DELETE("/concept/:guid", deleteConcept_h)
 	r.GET("/concept/:guid", getConcept_h)
+	r.GET("/concepts", queryConcepts_h)
+
 	r.POST("/steward", updateSteward_h)
 	r.GET("/steward", getSteward_h)
-	r.DELETE("/concept/:guid", deleteConcept_h)
-	r.GET("/concepts", queryConcepts_h)
+
+	// r.POST("/seed", addSeed_h)
+	// r.DELETE("/seed/:guid", deleteSeed_h)
+	// r.GET("/seed/:guid", getSeed_h)
+	// r.GET("/seeds", querySeeds_h)
+
 	r.GET("/peers", listPeers_h)
+
 	r.GET("/ws", handleWebSocket_h)
 	r.GET("/ws/peers", handlePeerWebSocket_h)
+
 	r.POST("/relationship", addRelationship_h)
 	r.PUT("/relationship/:id/deepen", deepenRelationship_h)
 	r.GET("/relationship/:id", getRelationship_h)
@@ -92,8 +101,8 @@ func initializeLists(ctx context.Context) {
 	conceptID2CID = make(ConceptGUID2CIDMap)
 	peerMap = make(PeerMap)
 	relationshipMap = make(RelationshipMap)
-	instanceMap = make(ConceptInstanceMap)
-	instanceID2CID = make(InstanceGUID2CIDMap)
+	seedMap = make(ConceptSeedMap)
+	seedID2CID = make(SeedGUID2CIDMap)
 
 	if err := network.Bootstrap(ctx); err != nil {
 		log.Fatalf("Failed to bootstrap IPFS: %v", err)
@@ -114,10 +123,10 @@ func initializeLists(ctx context.Context) {
 	}
 	if _, ok := peerMap[peerID]; !ok {
 		peerMap[peerID] = &Peer{
-			ID:           peerID,
-			Timestamp:    time.Now(),
-			ConceptCIDs:  make(map[CID]bool),
-			InstanceCIDs: make(map[CID]bool),
+			ID:          peerID,
+			Timestamp:   time.Now(),
+			ConceptCIDs: make(map[CID]bool),
+			SeedCIDs:    make(map[CID]bool),
 		}
 	}
 
@@ -144,13 +153,13 @@ func initializeLists(ctx context.Context) {
 	InvestmentConcept = findGUID("Investment")
 	TransactionConcept = findGUID("Transaction")
 	ReturnConcept = findGUID("Return")
-	initInstanceUnmarshal()
+	initSeedUnmarshal()
 
-	if err := network.Load(ctx, instanceID2CIDPath, &instanceID2CID); err != nil {
-		log.Printf("Failed to load instance CID map: %v\n", err)
+	if err := network.Load(ctx, seedID2CIDPath, &seedID2CID); err != nil {
+		log.Printf("Failed to load seed CID map: %v\n", err)
 	}
-	if err := network.Load(ctx, instancesPath, &instanceMap); err != nil {
-		log.Printf("Failed to load instance: %v\n", err)
+	if err := network.Load(ctx, seedsPath, &seedMap); err != nil {
+		log.Printf("Failed to load seeds: %v\n", err)
 	}
 
 	loadOrCreateSteward(ctx)
@@ -169,23 +178,23 @@ func initializeLists(ctx context.Context) {
 		}
 	}
 
-	for _, cid := range peerMap[peerID].GetInstanceCIDs() {
-		i, err := cid.AsInstanceConcept(ctx)
+	for _, cid := range peerMap[peerID].GetSeedCIDs() {
+		i, err := cid.AsSeedConcept(ctx)
 		if err != nil {
-			log.Fatalf("Unable to parse Instance: %s: %v", cid, err)
+			log.Fatalf("Unable to parse seed: %s: %v", cid, err)
 		} else {
-			log.Printf("Instance: %s\n", i)
+			log.Printf("Seed: %s\n", i)
 		}
 	}
 }
 
 func loadOrCreateSteward(ctx context.Context) {
-	var guid InstanceGUID
+	var guid SeedGUID
 	err := network.Load(ctx, stewardGUIDPath, &guid)
 	if err != nil {
 		log.Printf("Failed to load Steward ID from IPFS: %v", err)
 		log.Println("Generating new Steward ID...")
-		guid = InstanceGUID(uuid.New().String())
+		guid = SeedGUID(uuid.New().String())
 		if err := network.Save(ctx, stewardGUIDPath, guid); err != nil {
 			log.Fatalf("Failed to save new Steward ID: %v", err)
 		}
@@ -196,28 +205,28 @@ func loadOrCreateSteward(ctx context.Context) {
 	stewardMu.Unlock()
 
 	log.Printf("Steward ID: %s", stewardID)
-	_, ok := instanceID2CID[stewardID]
+	_, ok := seedID2CID[stewardID]
 	if !ok {
-		steward := NewStewardInstance("Urs Muff", "Creator of this network")
-		steward.InstanceID = stewardID
-		addOrUpdateInstance(ctx, steward, peerID)
-		asset1 := NewAssetInstance("First Thing", "", steward.InstanceID)
-		addOrUpdateInstance(ctx, asset1, peerID)
-		steward.StewardAssets = append(steward.StewardAssets, asset1.InstanceID)
-		addOrUpdateInstance(ctx, steward, peerID)
-		if err := network.Load(ctx, instancesPath, &instanceMap); err != nil {
-			log.Printf("Failed to load instance: %v\n", err)
+		steward := NewStewardSeed("Urs Muff", "Creator of this network")
+		steward.SeedID = stewardID
+		addOrUpdateSeed(ctx, steward, peerID)
+		asset1 := NewAssetSeed("First Thing", "", steward.SeedID)
+		addOrUpdateSeed(ctx, asset1, peerID)
+		steward.StewardAssets = append(steward.StewardAssets, asset1.SeedID)
+		addOrUpdateSeed(ctx, steward, peerID)
+		if err := network.Load(ctx, seedsPath, &seedMap); err != nil {
+			log.Printf("Failed to load seeds: %v\n", err)
 		}
 
 		// peerJson, _ := json.Marshal(peerMap[peerID])
 		// fmt.Printf("Peer: %s\n", string(peerJson))
 
-		// cid := instanceID2CID[stewardID]
+		// cid := seedID2CID[stewardID]
 		//
-		// if instance, err := cid.AsInstanceConcept(ctx); err != nil {
+		// if seed, err := cid.AsSeedConcept(ctx); err != nil {
 		// 	log.Fatalf("Unable to parse Concept: %s: %v", cid, err)
 		// } else {
-		// 	log.Printf("Instance: %s\n", instance)
+		// 	log.Printf("Seed: %s\n", seed)
 		// }
 	}
 }

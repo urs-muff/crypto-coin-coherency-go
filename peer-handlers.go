@@ -23,7 +23,7 @@ func listPeers_h(c *gin.Context) {
 	c.JSON(http.StatusOK, filteredPeerMap)
 }
 
-func addOrUpdatePeer(ctx context.Context, peerID PeerID, stewardID InstanceGUID) {
+func addOrUpdatePeer(ctx context.Context, peerID PeerID, stewardID SeedGUID) {
 	peerMapMu.Lock()
 	defer peerMapMu.Unlock()
 
@@ -40,7 +40,7 @@ func addOrUpdatePeer(ctx context.Context, peerID PeerID, stewardID InstanceGUID)
 	}
 }
 
-func updatePeerCIDs(peerID PeerID, conceptCIDs []CID, instanceCIDs []CID) {
+func updatePeerCIDs(peerID PeerID, conceptCIDs []CID, seedCIDs []CID) {
 	conceptMu.Lock()
 	defer conceptMu.Unlock()
 
@@ -59,10 +59,10 @@ func updatePeerCIDs(peerID PeerID, conceptCIDs []CID, instanceCIDs []CID) {
 		}
 	}
 
-	for _, cid := range instanceCIDs {
+	for _, cid := range seedCIDs {
 		found := false
-		for _, instance := range instanceMap {
-			if instance.GetCID() == cid {
+		for _, seed := range seedMap {
+			if seed.GetCID() == cid {
 				found = true
 				break
 			}
@@ -70,7 +70,7 @@ func updatePeerCIDs(peerID PeerID, conceptCIDs []CID, instanceCIDs []CID) {
 		if !found {
 			// If the concept is not in our list, we might want to fetch it
 			// This is left as an exercise, as it depends on how you want to handle this case
-			log.Printf("Found new Instance CID from peer %s: %s", peerID, cid)
+			log.Printf("Found new Seed CID from peer %s: %s", peerID, cid)
 		}
 	}
 }

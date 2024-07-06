@@ -52,28 +52,28 @@ func getConcept_h(c *gin.Context) {
 }
 
 func updateSteward_h(c *gin.Context) {
-	var stewardInstance StewardInstance
-	if err := c.BindJSON(&stewardInstance); err != nil {
+	var stewardSeed StewardSeed
+	if err := c.BindJSON(&stewardSeed); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid steward data"})
 		return
 	}
 
-	stewardInstance.ConceptID = StewardConcept
-	stewardInstance.InstanceID = stewardID
-	stewardInstance.Timestamp = time.Now()
+	stewardSeed.ConceptID = StewardConcept
+	stewardSeed.SeedID = stewardID
+	stewardSeed.Timestamp = time.Now()
 
-	addOrUpdateInstance(c.Request.Context(), &stewardInstance, peerID)
+	addOrUpdateSeed(c.Request.Context(), &stewardSeed, peerID)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Steward updated successfully", "guid": stewardInstance.InstanceID})
+	c.JSON(http.StatusOK, gin.H{"message": "Steward updated successfully", "guid": stewardSeed.SeedID})
 }
 
 func getSteward_h(c *gin.Context) {
-	stewardInstance, exists := instanceMap[stewardID]
+	stewardSeed, exists := seedMap[stewardID]
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Steward not found"})
 		return
 	}
-	c.JSON(http.StatusOK, stewardInstance)
+	c.JSON(http.StatusOK, stewardSeed)
 }
 
 func deleteConcept_h(c *gin.Context) {

@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 )
 
-type InstanceGUID GUID
-type InstanceGUID2CIDMap map[InstanceGUID]CID
+type SeedGUID GUID
+type SeedGUID2CIDMap map[SeedGUID]CID
 
 var (
 	StewardConcept           ConceptGUID
@@ -26,21 +26,21 @@ var (
 	ReturnConcept            ConceptGUID
 )
 
-type ConceptInstance_i interface {
-	GetInstanceID() InstanceGUID
+type ConceptSeed_i interface {
+	GetSeedID() SeedGUID
 	GetCID() CID
 	SetCID(cid CID)
 
 	Update(ctx context.Context) error
 
-	Instance() *ConceptInstance
+	Seed() *ConceptSeed
 }
 
-// ConceptInstance base structure for all instances of concepts
-type ConceptInstance struct {
+// ConceptSeed base structure for all seeds of concepts
+type ConceptSeed struct {
 	CID         CID `json:"-"`
-	InstanceID  InstanceGUID
-	ConceptID   ConceptGUID // Identifies the type of concept this instance represents
+	SeedID      SeedGUID
+	ConceptID   ConceptGUID // Identifies the type of concept this seed represents
 	Name        string
 	Description string
 	Timestamp   time.Time
@@ -59,39 +59,39 @@ type CoherenceVector_i interface {
 }
 
 type Copy_i interface {
-	Copy(ctx context.Context) (ConceptInstance_i, error)
+	Copy(ctx context.Context) (ConceptSeed_i, error)
 }
 
 type Merge_i interface {
-	Merge(ctx context.Context, other ConceptInstance_i) (ConceptInstance_i, error)
+	Merge(ctx context.Context, other ConceptSeed_i) (ConceptSeed_i, error)
 }
 
 type Move_i interface {
-	Move(ctx context.Context, from ConceptInstance_i, to ConceptInstance_i) error
+	Move(ctx context.Context, from ConceptSeed_i, to ConceptSeed_i) error
 }
 
 type Transform_i interface {
-	Transform(ctx context.Context, conceptID ConceptGUID) (ConceptInstance_i, error)
+	Transform(ctx context.Context, conceptID ConceptGUID) (ConceptSeed_i, error)
 }
 
 type Parent_i interface {
-	Parent() (ConceptInstance_i, error)
+	Parent() (ConceptSeed_i, error)
 }
 
 type Children_i interface {
-	Children() ([]ConceptInstance_i, error)
+	Children() ([]ConceptSeed_i, error)
 }
 
 type Related_i interface {
-	Related() ([]ConceptInstance_i, error)
+	Related() ([]ConceptSeed_i, error)
 }
 
 type RelatedByConcept_i interface {
-	RelatedByConcept(conceptID ConceptGUID) ([]ConceptInstance_i, error)
+	RelatedByConcept(conceptID ConceptGUID) ([]ConceptSeed_i, error)
 }
 
 type RelatedByName_i interface {
-	RelatedByName(name string) ([]ConceptInstance_i, error)
+	RelatedByName(name string) ([]ConceptSeed_i, error)
 }
 
 type Stream_i interface {
@@ -106,143 +106,143 @@ type RenderAs_i interface {
 	RenderAs(ctx context.Context, contentType string) (io.ReadCloser, error)
 }
 
-// StewardInstance represents an entity that can own assets and make investments
-type StewardInstance struct {
-	*ConceptInstance
-	StewardAssets []InstanceGUID // List of asset IDs the steward cares for
-	Investments   []InstanceGUID // Investments made by the steward
+// StewardSeed represents an entity that can steward assets and make investments
+type StewardSeed struct {
+	*ConceptSeed
+	StewardAssets []SeedGUID // List of asset IDs the steward cares for
+	Investments   []SeedGUID // Investments made by the steward
 }
 
 // Asset represents a valuable item or resource within the network
-type AssetInstance struct {
-	*ConceptInstance
-	Steward InstanceGUID // ID of the steward
+type AssetSeed struct {
+	*ConceptSeed
+	Steward SeedGUID // ID of the steward
 }
 
 // Coin represents units of currency used within the network for transactions
-type CoinInstance struct {
-	*ConceptInstance
+type CoinSeed struct {
+	*ConceptSeed
 	Value float64 // Monetary value of the coin
 }
 
 // SmartContract represents the contractual conditions attached to transactions
-type SmartContractInstance struct {
-	*ConceptInstance
-	ContractEvaluator InstanceGUID // ID of the evaluator responsible for this contract
-	Conditions        string       // Detailed conditions as a string or structured data
+type SmartContractSeed struct {
+	*ConceptSeed
+	ContractEvaluator SeedGUID // ID of the evaluator responsible for this contract
+	Conditions        string   // Detailed conditions as a string or structured data
 }
 
 // ContractEvaluator defines an entity responsible for evaluating smart contracts
-type ContractEvaluatorInstance struct {
-	*ConceptInstance
+type ContractEvaluatorSeed struct {
+	*ConceptSeed
 	EvaluationCriteria string // Criteria used to evaluate contracts
 }
 
 // Investment is a type of transaction with associated smart contracts
-type InvestmentInstance struct {
-	*ConceptInstance
-	Steward       InstanceGUID // Steward of the investment
-	Asset         InstanceGUID // Asset involved in the investment
-	SmartContract InstanceGUID // Associated smart contract
+type InvestmentSeed struct {
+	*ConceptSeed
+	Steward       SeedGUID // Steward of the investment
+	Asset         SeedGUID // Asset involved in the investment
+	SmartContract SeedGUID // Associated smart contract
 }
 
 // Transaction represents an exchange or transfer of assets, coins, or services
-type TransactionInstance struct {
-	*ConceptInstance
-	FromSteward InstanceGUID // ID of the steward sending the asset or coins
-	ToSteward   InstanceGUID // ID of the steward receiving the asset or coins
-	Asset       InstanceGUID // Asset being transacted, if applicable
-	Coin        InstanceGUID // Coin being transacted, if applicable
+type TransactionSeed struct {
+	*ConceptSeed
+	FromSteward SeedGUID // ID of the steward sending the asset or coins
+	ToSteward   SeedGUID // ID of the steward receiving the asset or coins
+	Asset       SeedGUID // Asset being transacted, if applicable
+	Coin        SeedGUID // Coin being transacted, if applicable
 }
 
 // Return represents the benefits or gains from investments
-type ReturnInstance struct {
-	*ConceptInstance
-	Investment InstanceGUID // Investment that generated this return
-	Amount     float64      // Quantitative value of the return
+type ReturnSeed struct {
+	*ConceptSeed
+	Investment SeedGUID // Investment that generated this return
+	Amount     float64  // Quantitative value of the return
 }
 
-func (ci ConceptInstance) GetInstanceID() InstanceGUID {
-	return ci.InstanceID
+func (ci ConceptSeed) GetSeedID() SeedGUID {
+	return ci.SeedID
 }
 
-func (ci ConceptInstance) GetCID() CID {
+func (ci ConceptSeed) GetCID() CID {
 	return ci.CID
 }
 
-func (ci *ConceptInstance) SetCID(cid CID) {
+func (ci *ConceptSeed) SetCID(cid CID) {
 	ci.CID = cid
 }
 
-func (ci *ConceptInstance) Instance() *ConceptInstance {
+func (ci *ConceptSeed) Seed() *ConceptSeed {
 	return ci
 }
 
-func (ci *ConceptInstance) DefaultUpdate(ctx context.Context, json json.RawMessage) error {
+func (ci *ConceptSeed) DefaultUpdate(ctx context.Context, json json.RawMessage) error {
 	// DEBUG: oldCID := ci.CID
 	if ci.CID != "" {
 		network.Remove(ctx, ci.CID)
-		delete(instanceMap, ci.InstanceID)
+		delete(seedMap, ci.SeedID)
 		ci.CID = ""
 	}
 	cid, err := network.Add(ctx, strings.NewReader(string(json)))
-	// DEBUG: fmt.Printf("Instance Update: JSON=%s => %s\n", string(json), cid)
+	// DEBUG: fmt.Printf("Seed Update: JSON=%s => %s\n", string(json), cid)
 	if err != nil {
 		return err
 	}
 	ci.CID = cid
 	// DEBUG:  if oldCID != "" && ci.CID != oldCID {
-	// DEBUG:    fmt.Printf("Istance [%s] CID %s => %s\n", ci, oldCID, ci.CID)
+	// DEBUG:    fmt.Printf("Seed [%s] CID %s => %s\n", ci, oldCID, ci.CID)
 	// DEBUG:  }
 	return nil
 }
 
-func (ci ConceptInstance) URI() string {
+func (ci ConceptSeed) URI() string {
 	return "ipfs://" + string(ci.CID)
 }
 
-func (id InstanceGUID) AsInstance() ConceptInstance_i {
-	inst, ok := instanceMap[id]
+func (id SeedGUID) AsSeed() ConceptSeed_i {
+	seed, ok := seedMap[id]
 	if ok {
-		return inst
+		return seed
 	}
 	return nil
 }
 
-func (id InstanceGUID) AsStewardInstance() *StewardInstance {
-	inst := id.AsInstance()
-	steward, ok := inst.(*StewardInstance)
+func (id SeedGUID) AsStewardSeed() *StewardSeed {
+	seed := id.AsSeed()
+	steward, ok := seed.(*StewardSeed)
 	if ok {
 		return steward
 	}
 	return nil
 }
 
-func addOrUpdateInstance(ctx context.Context, instance ConceptInstance_i, pID PeerID) error {
-	if instance.GetCID() != "" {
-		peerMap[pID].RemoveInstanceCID(instance.GetCID())
+func addOrUpdateSeed(ctx context.Context, seed ConceptSeed_i, pID PeerID) error {
+	if seed.GetCID() != "" {
+		peerMap[pID].RemoveSeedCID(seed.GetCID())
 	}
 
-	if err := instance.Update(ctx); err != nil {
-		log.Printf("Failed to update instance: %v", err)
+	if err := seed.Update(ctx); err != nil {
+		log.Printf("Failed to update seed: %v", err)
 		return err
 	}
-	instanceMap[instance.GetInstanceID()] = instance
-	instanceID2CID[instance.GetInstanceID()] = instance.GetCID()
-	log.Printf("Added/Updated instance: %s\n", instance)
+	seedMap[seed.GetSeedID()] = seed
+	seedID2CID[seed.GetSeedID()] = seed.GetCID()
+	log.Printf("Added/Updated seed: %s\n", seed)
 
-	if err := saveInstances(ctx); err != nil {
-		log.Printf("Failed to save instance list: %v", err)
+	if err := saveSeeds(ctx); err != nil {
+		log.Printf("Failed to save seed list: %v", err)
 		return err
 	}
 
-	peerMap[pID].AddInstanceCID(instance.GetCID())
+	peerMap[pID].AddSeedCID(seed.GetCID())
 	return nil
 }
 
-func NewConceptInstance(conceptID ConceptGUID, name string, desc string) *ConceptInstance {
-	return &ConceptInstance{
-		InstanceID:  InstanceGUID(uuid.New().String()),
+func NewConceptSeed(conceptID ConceptGUID, name string, desc string) *ConceptSeed {
+	return &ConceptSeed{
+		SeedID:      SeedGUID(uuid.New().String()),
 		ConceptID:   conceptID,
 		Name:        name,
 		Description: desc,
@@ -250,202 +250,202 @@ func NewConceptInstance(conceptID ConceptGUID, name string, desc string) *Concep
 	}
 }
 
-func (ci *ConceptInstance) AsString() string {
+func (ci *ConceptSeed) AsString() string {
 	return fmt.Sprintf("Name=%s, Desc=%s", ci.Name, ci.Description)
 }
 
-func (ci *ConceptInstance) DefaultString() string {
-	return fmt.Sprintf("CID=%s, ID=%s, Concept=%s, [%s]", ci.CID, ci.InstanceID, ci.ConceptID.AsConcept().Name, ci.AsString())
+func (ci *ConceptSeed) DefaultString() string {
+	return fmt.Sprintf("CID=%s, ID=%s, Concept=%s, [%s]", ci.CID, ci.SeedID, ci.ConceptID.AsConcept().Name, ci.AsString())
 }
 
-func (ci *ConceptInstance) String() string { return ci.DefaultString() }
+func (ci *ConceptSeed) String() string { return ci.DefaultString() }
 
-func NewStewardInstance(name string, desc string) *StewardInstance {
-	return &StewardInstance{
-		ConceptInstance: NewConceptInstance(StewardConcept, name, desc),
-		StewardAssets:   []InstanceGUID{},
-		Investments:     []InstanceGUID{},
+func NewStewardSeed(name string, desc string) *StewardSeed {
+	return &StewardSeed{
+		ConceptSeed:   NewConceptSeed(StewardConcept, name, desc),
+		StewardAssets: []SeedGUID{},
+		Investments:   []SeedGUID{},
 	}
 }
 
-func (i *StewardInstance) String() string {
+func (i *StewardSeed) String() string {
 	return fmt.Sprintf("%s [OwnedAssets=%v, Investments=%v]", i.DefaultString(), i.StewardAssets, i.Investments)
 }
 
-func (i *StewardInstance) Update(ctx context.Context) error {
+func (i *StewardSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewAssetInstance(name string, desc string, steward InstanceGUID) *AssetInstance {
-	return &AssetInstance{
-		ConceptInstance: NewConceptInstance(AssetConcept, name, desc),
-		Steward:         steward,
+func NewAssetSeed(name string, desc string, steward SeedGUID) *AssetSeed {
+	return &AssetSeed{
+		ConceptSeed: NewConceptSeed(AssetConcept, name, desc),
+		Steward:     steward,
 	}
 }
 
-func (ci *AssetInstance) String() string {
-	return fmt.Sprintf("%s, Steward=[%s]", ci.DefaultString(), ci.Steward.AsStewardInstance().AsString())
+func (ci *AssetSeed) String() string {
+	return fmt.Sprintf("%s, Steward=[%s]", ci.DefaultString(), ci.Steward.AsStewardSeed().AsString())
 }
 
-func (i *AssetInstance) Update(ctx context.Context) error {
+func (i *AssetSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewCoinInstance(value float64) *CoinInstance {
-	return &CoinInstance{
-		ConceptInstance: NewConceptInstance(CoinConcept, "", ""),
-		Value:           value,
+func NewCoinSeed(value float64) *CoinSeed {
+	return &CoinSeed{
+		ConceptSeed: NewConceptSeed(CoinConcept, "", ""),
+		Value:       value,
 	}
 }
 
-func (i *CoinInstance) Update(ctx context.Context) error {
+func (i *CoinSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewSmartContractInstance(name string, desc string, contractEvaluator InstanceGUID, conditions string) *SmartContractInstance {
-	return &SmartContractInstance{
-		ConceptInstance:   NewConceptInstance(SmartContractConcept, name, desc),
+func NewSmartContractSeed(name string, desc string, contractEvaluator SeedGUID, conditions string) *SmartContractSeed {
+	return &SmartContractSeed{
+		ConceptSeed:       NewConceptSeed(SmartContractConcept, name, desc),
 		ContractEvaluator: contractEvaluator,
 		Conditions:        conditions,
 	}
 }
 
-func (i *SmartContractInstance) Update(ctx context.Context) error {
+func (i *SmartContractSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewContractEvaluatorInstance(name string, desc string, evaluationCriteria string) *ContractEvaluatorInstance {
-	return &ContractEvaluatorInstance{
-		ConceptInstance:    NewConceptInstance(ContractEvaluatorConcept, name, desc),
+func NewContractEvaluatorSeed(name string, desc string, evaluationCriteria string) *ContractEvaluatorSeed {
+	return &ContractEvaluatorSeed{
+		ConceptSeed:        NewConceptSeed(ContractEvaluatorConcept, name, desc),
 		EvaluationCriteria: evaluationCriteria,
 	}
 }
 
-func (i *ContractEvaluatorInstance) Update(ctx context.Context) error {
+func (i *ContractEvaluatorSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewInvestmentInstance(name string, desc string, steward InstanceGUID, asset InstanceGUID, smartContract InstanceGUID) *InvestmentInstance {
-	return &InvestmentInstance{
-		ConceptInstance: NewConceptInstance(InvestmentConcept, name, desc),
-		Steward:         steward,
-		Asset:           asset,
-		SmartContract:   smartContract,
+func NewInvestmentSeed(name string, desc string, steward SeedGUID, asset SeedGUID, smartContract SeedGUID) *InvestmentSeed {
+	return &InvestmentSeed{
+		ConceptSeed:   NewConceptSeed(InvestmentConcept, name, desc),
+		Steward:       steward,
+		Asset:         asset,
+		SmartContract: smartContract,
 	}
 }
 
-func (i *InvestmentInstance) Update(ctx context.Context) error {
+func (i *InvestmentSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewTransactionInstance(name string, desc string, fromSteward InstanceGUID, toSteward InstanceGUID, asset InstanceGUID, coin InstanceGUID) *TransactionInstance {
-	return &TransactionInstance{
-		ConceptInstance: NewConceptInstance(TransactionConcept, name, desc),
-		FromSteward:     fromSteward,
-		ToSteward:       toSteward,
-		Asset:           asset,
-		Coin:            coin,
+func NewTransactionSeed(name string, desc string, fromSteward SeedGUID, toSteward SeedGUID, asset SeedGUID, coin SeedGUID) *TransactionSeed {
+	return &TransactionSeed{
+		ConceptSeed: NewConceptSeed(TransactionConcept, name, desc),
+		FromSteward: fromSteward,
+		ToSteward:   toSteward,
+		Asset:       asset,
+		Coin:        coin,
 	}
 }
 
-func (i *TransactionInstance) Update(ctx context.Context) error {
+func (i *TransactionSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewReturnInstance(name string, desc string, investment InstanceGUID, amount float64) *ReturnInstance {
-	return &ReturnInstance{
-		ConceptInstance: NewConceptInstance(ReturnConcept, name, desc),
-		Investment:      investment,
-		Amount:          amount,
+func NewReturnSeed(name string, desc string, investment SeedGUID, amount float64) *ReturnSeed {
+	return &ReturnSeed{
+		ConceptSeed: NewConceptSeed(ReturnConcept, name, desc),
+		Investment:  investment,
+		Amount:      amount,
 	}
 }
 
-func (i *ReturnInstance) Update(ctx context.Context) error {
+func (i *ReturnSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
 
-type UnmarshalInstanceFunc func(data json.RawMessage) (ConceptInstance_i, error)
+type UnmarshalSeedFunc func(data json.RawMessage) (ConceptSeed_i, error)
 
-var unmarshalInstanceFuncs map[ConceptGUID]UnmarshalInstanceFunc
+var unmarshalSeedFuncs map[ConceptGUID]UnmarshalSeedFunc
 
-func initInstanceUnmarshal() {
-	unmarshalInstanceFuncs = map[ConceptGUID]UnmarshalInstanceFunc{
-		StewardConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*StewardInstance](data)
+func initSeedUnmarshal() {
+	unmarshalSeedFuncs = map[ConceptGUID]UnmarshalSeedFunc{
+		StewardConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*StewardSeed](data)
 		},
-		AssetConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*AssetInstance](data)
+		AssetConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*AssetSeed](data)
 		},
-		CoinConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*CoinInstance](data)
+		CoinConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*CoinSeed](data)
 		},
-		SmartContractConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*SmartContractInstance](data)
+		SmartContractConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*SmartContractSeed](data)
 		},
-		ContractEvaluatorConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*ContractEvaluatorInstance](data)
+		ContractEvaluatorConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*ContractEvaluatorSeed](data)
 		},
-		InvestmentConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*InvestmentInstance](data)
+		InvestmentConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*InvestmentSeed](data)
 		},
-		TransactionConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*TransactionInstance](data)
+		TransactionConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*TransactionSeed](data)
 		},
-		ReturnConcept: func(data json.RawMessage) (ConceptInstance_i, error) {
-			return genericUnmarshalInstance[*ReturnInstance](data)
+		ReturnConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+			return genericUnmarshalSeed[*ReturnSeed](data)
 		},
 	}
 }
 
-func genericUnmarshalInstance[T ConceptInstance_i](data json.RawMessage) (ConceptInstance_i, error) {
-	var instance T
-	if err := json.Unmarshal(data, &instance); err != nil {
+func genericUnmarshalSeed[T ConceptSeed_i](data json.RawMessage) (ConceptSeed_i, error) {
+	var seed T
+	if err := json.Unmarshal(data, &seed); err != nil {
 		return nil, err
 	}
-	return instance, nil
+	return seed, nil
 }
 
-type ConceptInstanceMap map[InstanceGUID]ConceptInstance_i
+type ConceptSeedMap map[SeedGUID]ConceptSeed_i
 
-func UnmarshalJSON2ConceptInstance(raw json.RawMessage) (ConceptInstance_i, error) {
-	var ci ConceptInstance
+func UnmarshalJSON2ConceptSeed(raw json.RawMessage) (ConceptSeed_i, error) {
+	var ci ConceptSeed
 	json.Unmarshal(raw, &ci)
-	unmarshal, exists := unmarshalInstanceFuncs[ci.ConceptID]
+	unmarshal, exists := unmarshalSeedFuncs[ci.ConceptID]
 	if !exists {
 		return nil, fmt.Errorf("unmarshal function not found for ConceptID: %s", ci.ConceptID)
 	}
 
-	instance, err := unmarshal(raw)
+	seed, err := unmarshal(raw)
 	if err != nil {
 		return nil, err
 	}
-	return instance, nil
+	return seed, nil
 }
 
-func (cim *ConceptInstanceMap) UnmarshalJSON(data []byte) error {
-	var rawInstances map[InstanceGUID]json.RawMessage
-	if err := json.Unmarshal(data, &rawInstances); err != nil {
+func (cim *ConceptSeedMap) UnmarshalJSON(data []byte) error {
+	var rawSeeds map[SeedGUID]json.RawMessage
+	if err := json.Unmarshal(data, &rawSeeds); err != nil {
 		return err
 	}
 
-	*cim = make(ConceptInstanceMap)
-	for id, raw := range rawInstances {
-		instance, err := UnmarshalJSON2ConceptInstance(raw)
+	*cim = make(ConceptSeedMap)
+	for id, raw := range rawSeeds {
+		seed, err := UnmarshalJSON2ConceptSeed(raw)
 		if err != nil {
 			return err
 		}
-		(*cim)[id] = instance
-		cid, ok := instanceID2CID[id]
+		(*cim)[id] = seed
+		cid, ok := seedID2CID[id]
 		if ok {
-			instance.SetCID(cid)
+			seed.SetCID(cid)
 		}
 	}
 	return nil

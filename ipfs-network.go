@@ -20,8 +20,8 @@ const (
 	conceptsPath      = "/ccn/concepts.json"
 	conceptID2CIDPath = "/ccn/conceptID-CID.json"
 
-	instancesPath      = "/ccn/instances.json"
-	instanceID2CIDPath = "/ccn/instanceID-CID.json"
+	seedsPath      = "/ccn/seeds.json"
+	seedID2CIDPath = "/ccn/seedID-CID.json"
 )
 
 func (c *Concept) Update(ctx context.Context) error {
@@ -141,7 +141,7 @@ func handleReceivedMessage(data []byte) {
 	saveRelationships(context.Background())
 
 	// Update the CIDs for this peer
-	updatePeerCIDs(message.PeerID, message.ConceptCIDs, message.InstanceCIDs)
+	updatePeerCIDs(message.PeerID, message.ConceptCIDs, message.SeedCIDs)
 }
 
 // Modify the Interact method of Relationship

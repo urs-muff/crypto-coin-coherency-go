@@ -10,6 +10,8 @@ ipfs files rm /ccn/conceptID-CID.json
 ipfs files rm /ccn/concepts.json
 ipfs files rm /ccn/instanceID-CID.json
 ipfs files rm /ccn/instances.json
+ipfs files rm /ccn/seedID-CID.json
+ipfs files rm /ccn/seeds.json
 
 ipfs repo gc
 

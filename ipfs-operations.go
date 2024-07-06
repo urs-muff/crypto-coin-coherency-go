@@ -32,11 +32,11 @@ func savePeerList(ctx context.Context) error {
 	return saveData(ctx, peerListPath, peerMap)
 }
 
-func saveInstances(ctx context.Context) error {
-	if err := saveData(ctx, instancesPath, instanceMap); err != nil {
+func saveSeeds(ctx context.Context) error {
+	if err := saveData(ctx, seedsPath, seedMap); err != nil {
 		return err
 	}
-	if err := saveData(ctx, instanceID2CIDPath, instanceID2CID); err != nil {
+	if err := saveData(ctx, seedID2CIDPath, seedID2CID); err != nil {
 		return err
 	}
 	return nil
@@ -59,16 +59,16 @@ func publishPeerMessage(ctx context.Context) {
 	}
 	conceptMu.RUnlock()
 
-	instanceCIDs := make([]CID, 0, len(instanceMap))
-	for _, instance := range instanceMap {
-		instanceCIDs = append(instanceCIDs, instance.GetCID())
+	seedCIDs := make([]CID, 0, len(seedMap))
+	for _, seed := range seedMap {
+		seedCIDs = append(seedCIDs, seed.GetCID())
 	}
 
 	message := PeerMessage{
 		PeerID:        peerID,
 		StewardID:     peer.GetStewardID(),
 		ConceptCIDs:   conceptCIDs,
-		InstanceCIDs:  instanceCIDs,
+		SeedCIDs:      seedCIDs,
 		Relationships: relationshipMap,
 	}
 
