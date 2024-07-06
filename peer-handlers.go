@@ -23,27 +23,28 @@ func listPeers_h(c *gin.Context) {
 	c.JSON(http.StatusOK, filteredPeerMap)
 }
 
-func addOrUpdatePeer(ctx context.Context, peerID PeerID, ownerGUID GUID) {
+func addOrUpdatePeer(ctx context.Context, peerID PeerID, ownerGUID InstanceGUID) {
 	peerMapMu.Lock()
 	defer peerMapMu.Unlock()
 
-	peerMap[peerID] = &Peer{
-		ID:        peerID,
-		OwnerGUID: ownerGUID,
-		Timestamp: time.Now(),
-	}
-	log.Printf("Updated peer: %s", peerID)
-
-	if err := savePeerList(ctx); err != nil {
-		log.Printf("Failed to save peerMap: %v", err)
+	if _, ok := peerMap[peerID]; !ok {
+		peerMap[peerID] = &Peer{
+			ID:        peerID,
+			OwnerGUID: ownerGUID,
+			Timestamp: time.Now(),
+		}
+		log.Printf("Added peer: %s", peerID)
+		if err := savePeerList(ctx); err != nil {
+			log.Printf("Failed to save peerMap: %v", err)
+		}
 	}
 }
 
-func updatePeerCIDs(peerID PeerID, cids []CID) {
+func updatePeerCIDs(peerID PeerID, conceptCIDs []CID, instanceCIDs []CID) {
 	conceptMu.Lock()
 	defer conceptMu.Unlock()
 
-	for _, cid := range cids {
+	for _, cid := range conceptCIDs {
 		found := false
 		for _, concept := range conceptMap {
 			if concept.GetCID() == cid {
@@ -54,7 +55,22 @@ func updatePeerCIDs(peerID PeerID, cids []CID) {
 		if !found {
 			// If the concept is not in our list, we might want to fetch it
 			// This is left as an exercise, as it depends on how you want to handle this case
-			log.Printf("Found new CID from peer %s: %s", peerID, cid)
+			log.Printf("Found new Concept CID from peer %s: %s", peerID, cid)
+		}
+	}
+
+	for _, cid := range instanceCIDs {
+		found := false
+		for _, instance := range instanceMap {
+			if instance.GetCID() == cid {
+				found = true
+				break
+			}
+		}
+		if !found {
+			// If the concept is not in our list, we might want to fetch it
+			// This is left as an exercise, as it depends on how you want to handle this case
+			log.Printf("Found new Instance CID from peer %s: %s", peerID, cid)
 		}
 	}
 }

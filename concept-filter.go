@@ -10,7 +10,7 @@ func isEmptyFilter(filter ConceptFilter) bool {
 }
 
 func matchesConcept(concept Concept, filter ConceptFilter) bool {
-	if filter.CID != "" && string(concept.GetCID()) != filter.CID {
+	if filter.CID != "" && concept.GetCID() != filter.CID {
 		return false
 	}
 	if filter.GUID != "" && concept.GetGUID() != filter.GUID {

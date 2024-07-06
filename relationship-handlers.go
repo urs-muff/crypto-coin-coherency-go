@@ -8,9 +8,9 @@ import (
 
 func addRelationship_h(c *gin.Context) {
 	var req struct {
-		SourceID GUID `json:"sourceId"`
-		TargetID GUID `json:"targetId"`
-		TypeID   GUID `json:"typeId"`
+		SourceID ConceptGUID `json:"sourceId"`
+		TargetID ConceptGUID `json:"targetId"`
+		TypeID   ConceptGUID `json:"typeId"`
 	}
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -32,13 +32,13 @@ func addRelationship_h(c *gin.Context) {
 
 	// Save updated data
 	saveRelationships(c.Request.Context())
-	saveConceptMap(c.Request.Context())
+	saveConcepts(c.Request.Context())
 
 	c.JSON(http.StatusOK, relationship)
 }
 
 func deepenRelationship_h(c *gin.Context) {
-	id := GUID(c.Param("id"))
+	id := ConceptGUID(c.Param("id"))
 	if relationship, ok := relationshipMap[id]; ok {
 		relationship.Deepen()
 		relationshipMap[id] = relationship
@@ -50,7 +50,7 @@ func deepenRelationship_h(c *gin.Context) {
 }
 
 func getRelationship_h(c *gin.Context) {
-	id := GUID(c.Param("id"))
+	id := ConceptGUID(c.Param("id"))
 	if relationship, ok := relationshipMap[id]; ok {
 		c.JSON(http.StatusOK, relationship)
 	} else {
@@ -73,7 +73,7 @@ func getRelationshipTypes_h(c *gin.Context) {
 }
 
 func getRelationshipsByType_h(c *gin.Context) {
-	typeGUID := GUID(c.Query("type"))
+	typeGUID := ConceptGUID(c.Query("type"))
 	var filteredRelationships []*Relationship
 	for _, rel := range relationshipMap {
 		if rel.Type == typeGUID {
@@ -84,9 +84,9 @@ func getRelationshipsByType_h(c *gin.Context) {
 }
 
 func interactWithRelationship_h(c *gin.Context) {
-	id := GUID(c.Param("id"))
+	id := ConceptGUID(c.Param("id"))
 	var req struct {
-		InteractionTypeGUID GUID `json:"interactionTypeGuid"`
+		InteractionTypeGUID ConceptGUID `json:"interactionTypeGuid"`
 	}
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})

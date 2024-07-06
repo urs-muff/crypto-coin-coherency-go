@@ -34,9 +34,9 @@ type RelationshipNode struct {
 	Description string `yaml:"description"`
 }
 
-var guidMap = make(map[string]GUID)
+var guidMap = make(map[string]ConceptGUID)
 
-func generateGUID(ctx context.Context, name string) GUID {
+func generateGUID(ctx context.Context, name string) ConceptGUID {
 	if guid, exists := guidMap[name]; exists {
 		return guid
 	}
@@ -44,11 +44,19 @@ func generateGUID(ctx context.Context, name string) GUID {
 	if err != nil {
 		log.Fatalf("Failed to generate GUID: %v", err)
 	}
-	guidMap[name] = GUID(guid)
-	return GUID(guid)
+	guidMap[name] = ConceptGUID(guid)
+	return ConceptGUID(guid)
 }
 
-func findGUID(guid GUID) string {
+func findGUID(name string) ConceptGUID {
+	if guid, exists := guidMap[name]; exists {
+		return guid
+	}
+	log.Fatalf("GUID for Concept '%s' not found.", name)
+	return ""
+}
+
+func (guid ConceptGUID) findName() string {
 	for name, nameGuid := range guidMap {
 		if guid == nameGuid {
 			return name
@@ -72,10 +80,10 @@ func parseConceptStructure(filename string) (*ConceptStructure, error) {
 	return &structure, nil
 }
 
-func createConcepts(ctx context.Context, node ConceptNode, parentGUID GUID) (*Concept, error) {
+func createConcepts(ctx context.Context, node ConceptNode, parentGUID ConceptGUID) (*Concept, error) {
 	guid := generateGUID(ctx, node.Name)
 	concept := &Concept{
-		GUID:        guid,
+		ID:          guid,
 		Name:        node.Name,
 		Description: node.Description,
 		Type:        node.Type,
@@ -83,7 +91,7 @@ func createConcepts(ctx context.Context, node ConceptNode, parentGUID GUID) (*Co
 	}
 
 	if len(node.Children) > 0 || parentGUID != "" {
-		err := addOrUpdateConcept(ctx, concept)
+		err := addOrUpdateConcept(ctx, concept, peerID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to add or update concept %s: %v", node.Name, err)
 		}
@@ -101,10 +109,10 @@ func createConcepts(ctx context.Context, node ConceptNode, parentGUID GUID) (*Co
 		if err != nil {
 			return nil, err
 		}
-		concept.Relationships = append(concept.Relationships, childConcept.GUID)
+		concept.Relationships = append(concept.Relationships, childConcept.ID)
 	}
 
-	err := addOrUpdateConcept(ctx, concept)
+	err := addOrUpdateConcept(ctx, concept, peerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add or update concept %s: %v", node.Name, err)
 	}
@@ -117,6 +125,10 @@ func createRelationships(ctx context.Context, node ConceptNode) error {
 	for _, rel := range node.Relationships {
 		targetGUID := generateGUID(ctx, rel.Target)
 		relTypeGUID := generateGUID(ctx, rel.Type)
+		c := relTypeGUID.AsConcept()
+		if c == nil {
+			log.Fatalf("Type Description missing: %s in %s\n", rel.Type, node.Name)
+		}
 		err := createCoreRelationship(ctx, sourceGUID, relTypeGUID, targetGUID)
 		if err != nil {
 			return fmt.Errorf("failed to create relationship %s -> %s -> %s: %v", node.Name, rel.Type, rel.Target, err)
@@ -142,13 +154,13 @@ func BootstrapFromStructure(ctx context.Context, filename string) error {
 	// Create relationship types
 	for _, rel := range structure.Relationships {
 		relationship := &Concept{
-			GUID:        generateGUID(ctx, rel.Name),
+			ID:          generateGUID(ctx, rel.Name),
 			Name:        rel.Name,
 			Description: rel.Description,
 			Type:        "RelationshipType",
 			Timestamp:   time.Now(),
 		}
-		err := addOrUpdateConcept(ctx, relationship)
+		err := addOrUpdateConcept(ctx, relationship, peerID)
 		if err != nil {
 			return fmt.Errorf("failed to add relationship type %s: %v", rel.Name, err)
 		}
@@ -174,7 +186,7 @@ func BootstrapFromStructure(ctx context.Context, filename string) error {
 	return nil
 }
 
-func createCoreRelationship(ctx context.Context, sourceGUID, relationshipTypeGUID, targetGUID GUID) error {
+func createCoreRelationship(ctx context.Context, sourceGUID, relationshipTypeGUID, targetGUID ConceptGUID) error {
 	relationshipID := generateGUID(ctx, fmt.Sprintf("%s-%s-%s", sourceGUID, relationshipTypeGUID, targetGUID))
 
 	relationship := &Relationship{
@@ -197,13 +209,13 @@ func createCoreRelationship(ctx context.Context, sourceGUID, relationshipTypeGUI
 	// Update the relationships for the source and target concepts
 	sourceConcept, exists := conceptMap[sourceGUID]
 	if !exists {
-		return fmt.Errorf("source concept with GUID %s => (%s) not found", sourceGUID, findGUID(targetGUID))
+		return fmt.Errorf("source concept with GUID %s => (%s) not found", sourceGUID, sourceGUID.findName())
 	}
 	sourceConcept.Relationships = append(sourceConcept.Relationships, relationshipID)
 
 	targetConcept, exists := conceptMap[targetGUID]
 	if !exists {
-		return fmt.Errorf("target concept with GUID %s => (%s) not found", targetGUID, findGUID(targetGUID))
+		return fmt.Errorf("target concept with GUID %s => (%s) not found", targetGUID, targetGUID.findName())
 	}
 	targetConcept.Relationships = append(targetConcept.Relationships, relationshipID)
 

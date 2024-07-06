@@ -13,46 +13,16 @@ import (
 )
 
 const (
-	GUID2CIDPath      = "/ccn/GUID-CID.json"
 	peerListPath      = "/ccn/peer-list.json"
 	ownerGUIDPath     = "/ccn/owner-guid.json"
 	relationshipsPath = "/ccn/relationships.json"
+
 	conceptsPath      = "/ccn/concepts.json"
+	conceptID2CIDPath = "/ccn/conceptID-CID.json"
+
+	instancesPath      = "/ccn/instances.json"
+	instanceID2CIDPath = "/ccn/instanceID-CID.json"
 )
-
-func (pm *PeerMap) UnmarshalJSON(data []byte) error {
-	var rawMap map[PeerID]json.RawMessage
-	if err := json.Unmarshal(data, &rawMap); err != nil {
-		return err
-	}
-
-	*pm = make(PeerMap)
-	for peerID, raw := range rawMap {
-		var p Peer
-		if err := json.Unmarshal(raw, &p); err != nil {
-			return err
-		}
-		(*pm)[peerID] = &p
-	}
-	return nil
-}
-
-func (rm *RelationshipMap) UnmarshalJSON(data []byte) error {
-	var rawMap map[PeerID]json.RawMessage
-	if err := json.Unmarshal(data, &rawMap); err != nil {
-		return err
-	}
-
-	*rm = make(RelationshipMap)
-	for guid, raw := range rawMap {
-		var r Relationship
-		if err := json.Unmarshal(raw, &r); err != nil {
-			return err
-		}
-		(*rm)[GUID(guid)] = &r
-	}
-	return nil
-}
 
 func (c *Concept) Update(ctx context.Context) error {
 	if c.CID != "" {
@@ -68,7 +38,7 @@ func (c *Concept) Update(ctx context.Context) error {
 	return nil
 }
 
-func addOrUpdateConcept(ctx context.Context, concept *Concept) error {
+func addOrUpdateConcept(ctx context.Context, concept *Concept, pID PeerID) error {
 	conceptMu.Lock()
 	defer conceptMu.Unlock()
 
@@ -77,25 +47,23 @@ func addOrUpdateConcept(ctx context.Context, concept *Concept) error {
 		return err
 	}
 	conceptMap[concept.GetGUID()] = concept
-	GUID2CID[concept.GetGUID()] = concept.GetCID()
+	conceptID2CID[concept.GetGUID()] = concept.GetCID()
 	log.Printf("Added/Updated concept: %s\n", concept)
 
-	if err := network.Save(ctx, GUID2CIDPath, GUID2CID); err != nil {
+	if err := saveConcepts(ctx); err != nil {
 		log.Printf("Failed to save concept list: %v", err)
 		return err
+	}
+
+	peerMap[pID].AddConceptCID(concept.GetCID())
+	if err := savePeerList(ctx); err != nil {
+		log.Printf("Failed to save peer list: %v", err)
 	}
 	return nil
 }
 
-func addNewConcept(concept *Concept) {
-	conceptMu.Lock()
-	conceptMap[concept.GetGUID()] = concept
-	GUID2CID[concept.GetGUID()] = concept.GetCID()
-	conceptMu.Unlock()
-
-	peerMap[peerID].AddCID(concept.GetCID())
-
-	log.Printf("Added new concept: %s", concept)
+func addNewConcept(ctx context.Context, concept *Concept, pID PeerID) {
+	addOrUpdateConcept(ctx, concept, pID)
 
 	go publishPeerMessage(context.Background())
 }
@@ -173,11 +141,11 @@ func handleReceivedMessage(data []byte) {
 	saveRelationships(context.Background())
 
 	// Update the CIDs for this peer
-	updatePeerCIDs(message.PeerID, message.CIDs)
+	updatePeerCIDs(message.PeerID, message.ConceptCIDs, message.InstanceCIDs)
 }
 
 // Modify the Interact method of Relationship
-func (r *Relationship) Interact(interactionType GUID) {
+func (r *Relationship) Interact(interactionType ConceptGUID) {
 	r.Interactions++
 	r.Depth = int(math.Log2(float64(r.Interactions))) + 1
 	r.LastInteraction = time.Now()

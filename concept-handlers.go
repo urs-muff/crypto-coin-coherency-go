@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
@@ -23,24 +22,23 @@ func addConcept_h(c *gin.Context) {
 	}
 
 	concept := &Concept{
-		GUID:          GUID(uuid.New().String()),
+		ID:            ConceptGUID(uuid.New().String()),
 		Name:          newConcept.Name,
 		Description:   newConcept.Description,
 		Type:          newConcept.Type,
 		Timestamp:     time.Now(),
-		Relationships: []GUID{},
+		Relationships: []ConceptGUID{},
 	}
-	concept.Update(c.Request.Context())
 
-	addNewConcept(concept)
+	addNewConcept(c.Request.Context(), concept, peerID)
 	c.JSON(http.StatusOK, gin.H{
-		"guid": concept.GUID,
+		"guid": concept.ID,
 		"cid":  string(concept.CID),
 	})
 }
 
 func getConcept_h(c *gin.Context) {
-	guid := GUID(c.Param("guid"))
+	guid := ConceptGUID(c.Param("guid"))
 
 	conceptMu.RLock()
 	concept, exists := conceptMap[guid]
@@ -54,42 +52,32 @@ func getConcept_h(c *gin.Context) {
 }
 
 func updateOwner_h(c *gin.Context) {
-	var ownerConcept Concept
-	if err := c.BindJSON(&ownerConcept); err != nil {
+	var ownerInstance OwnerInstance
+	if err := c.BindJSON(&ownerInstance); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid owner data"})
 		return
 	}
 
-	ownerConcept.Type = "Owner"
-	ownerMu.RLock()
-	ownerConcept.GUID = ownerGUID
-	ownerMu.RUnlock()
-	ownerConcept.Timestamp = time.Now()
+	ownerInstance.ConceptID = OwnerConcept
+	ownerInstance.InstanceID = ownerGUID
+	ownerInstance.Timestamp = time.Now()
 
-	addOrUpdateConcept(c.Request.Context(), &ownerConcept)
+	addOrUpdateInstance(c.Request.Context(), &ownerInstance, peerID)
 
-	if err := savePeerList(c.Request.Context()); err != nil {
-		log.Printf("Failed to save peerMap: %v", err)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Owner updated successfully", "guid": ownerConcept.GUID})
+	c.JSON(http.StatusOK, gin.H{"message": "Owner updated successfully", "guid": ownerInstance.InstanceID})
 }
 
 func getOwner_h(c *gin.Context) {
-	conceptMu.RLock()
-	ownerConcept, exists := conceptMap[ownerGUID]
-	conceptMu.RUnlock()
-
+	ownerInstance, exists := instanceMap[ownerGUID]
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Owner not found"})
 		return
 	}
-
-	c.JSON(http.StatusOK, ownerConcept)
+	c.JSON(http.StatusOK, ownerInstance)
 }
 
 func deleteConcept_h(c *gin.Context) {
-	guid := GUID(c.Param("guid"))
+	guid := ConceptGUID(c.Param("guid"))
 
 	conceptMu.Lock()
 	defer conceptMu.Unlock()
@@ -100,13 +88,13 @@ func deleteConcept_h(c *gin.Context) {
 		return
 	}
 
-	if err := network.Remove(context.Background(), concept.GetCID()); err != nil {
+	if err := network.Remove(c.Request.Context(), concept.GetCID()); err != nil {
 		log.Printf("Failed to remove concept: %v", err)
 	}
 	delete(conceptMap, guid)
-	delete(GUID2CID, guid)
-	if err := network.Save(context.Background(), GUID2CIDPath, GUID2CID); err != nil {
-		log.Printf("Failed to save concept list: %v", err)
+	delete(conceptID2CID, guid)
+	if err := saveConcepts(c.Request.Context()); err != nil {
+		log.Printf("Failed to save concept map: %v", err)
 	}
 
 	c.Status(http.StatusNoContent)
@@ -114,8 +102,8 @@ func deleteConcept_h(c *gin.Context) {
 
 func queryConcepts_h(c *gin.Context) {
 	filter := ConceptFilter{
-		CID:         c.Query("cid"),
-		GUID:        GUID(c.Query("guid")),
+		CID:         CID(c.Query("cid")),
+		GUID:        ConceptGUID(c.Query("guid")),
 		Name:        c.Query("name"),
 		Description: c.Query("description"),
 		Type:        c.Query("type"),

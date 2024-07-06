@@ -17,19 +17,26 @@ type CID string
 // PeerID represents a unique identifier for a peer in the network
 type PeerID string
 
-// GUID represents a globally unique identifier
+// ConceptGUID represents a globally unique identifier
 type GUID string
+type ConceptGUID GUID
 
-type GUID2CIDMap map[GUID]CID
+type ConceptGUID2CIDMap map[ConceptGUID]CID
 
 // Peer_i represents a peer in the network
 type Peer_i interface {
 	GetID() PeerID
-	GetOwnerGUID() GUID
-	GetCIDs() []CID
+	GetOwnerGUID() InstanceGUID
+
+	AddConceptCID(cid CID)
+	RemoveConceptCID(cid CID)
+	GetConceptCIDs() []CID
+
+	AddInstanceCID(cid CID)
+	RemoveInstanceCID(cid CID)
+	GetInstanceCIDs() []CID
+
 	GetTimestamp() time.Time
-	AddCID(cid CID)
-	RemoveCID(cid CID)
 }
 
 // Network_i defines the interface for interacting with the network
@@ -81,31 +88,31 @@ type Node_i interface {
 // Concept implements the Concept_i interface
 type Concept struct {
 	CID           CID `json:"-"`
-	GUID          GUID
+	ID            ConceptGUID
 	Name          string
 	Description   string
 	Type          string
-	Relationships []GUID
+	Relationships []ConceptGUID
 	Timestamp     time.Time
 }
 
-type ConceptMap map[GUID]*Concept
+type ConceptMap map[ConceptGUID]*Concept
 
-func (c Concept) GetCID() CID              { return c.CID }
-func (c Concept) GetGUID() GUID            { return c.GUID }
-func (c Concept) GetName() string          { return c.Name }
-func (c Concept) GetDescription() string   { return c.Description }
-func (c Concept) GetType() string          { return c.Type }
-func (c Concept) GetRelationships() []GUID { return c.Relationships }
-func (c Concept) GetTimestamp() time.Time  { return c.Timestamp }
-func (c Concept) String() string           { return fmt.Sprintf("%s: %s (%s)", c.GUID, c.Name, c.Type) }
+func (c Concept) GetCID() CID                     { return c.CID }
+func (c Concept) GetGUID() ConceptGUID            { return c.ID }
+func (c Concept) GetName() string                 { return c.Name }
+func (c Concept) GetDescription() string          { return c.Description }
+func (c Concept) GetType() string                 { return c.Type }
+func (c Concept) GetRelationships() []ConceptGUID { return c.Relationships }
+func (c Concept) GetTimestamp() time.Time         { return c.Timestamp }
+func (c Concept) String() string                  { return fmt.Sprintf("%s: %s (%s)", c.ID, c.Name, c.Type) }
 
 // Relationship represents a connection between two entities
 type Relationship struct {
-	ID              GUID
-	SourceID        GUID
-	TargetID        GUID
-	Type            GUID
+	ID              ConceptGUID
+	SourceID        ConceptGUID
+	TargetID        ConceptGUID
+	Type            ConceptGUID
 	EnergyFlow      float64
 	FrequencySpec   []float64
 	Amplitude       float64
@@ -125,12 +132,12 @@ func (r Relationship) String() string {
 }
 
 // RelationshipMap stores all relationships
-type RelationshipMap map[GUID]*Relationship
+type RelationshipMap map[ConceptGUID]*Relationship
 
 // Function to create a new relationship
-func CreateRelationship(sourceID, targetID GUID, relationType GUID) *Relationship {
+func CreateRelationship(sourceID, targetID ConceptGUID, relationType ConceptGUID) *Relationship {
 	return &Relationship{
-		ID:            GUID(uuid.New().String()),
+		ID:            ConceptGUID(uuid.New().String()),
 		SourceID:      sourceID,
 		TargetID:      targetID,
 		Type:          relationType,
@@ -155,45 +162,61 @@ func (r *Relationship) Deepen() {
 
 // ConcretePeer implements the Peer_i interface
 type Peer struct {
-	ID        PeerID
-	OwnerGUID GUID
-	CIDs      map[CID]bool
-	Timestamp time.Time
+	ID           PeerID
+	OwnerGUID    InstanceGUID
+	ConceptCIDs  map[CID]bool
+	InstanceCIDs map[CID]bool
+	Timestamp    time.Time
 }
 
-func (p Peer) GetID() PeerID      { return p.ID }
-func (p Peer) GetOwnerGUID() GUID { return p.OwnerGUID }
-func (p Peer) GetCIDs() []CID {
+func (p Peer) GetID() PeerID              { return p.ID }
+func (p Peer) GetOwnerGUID() InstanceGUID { return p.OwnerGUID }
+
+func (p *Peer) AddConceptCID(cid CID)    { p.ConceptCIDs[cid] = true }
+func (p *Peer) RemoveConceptCID(cid CID) { delete(p.ConceptCIDs, cid) }
+func (p Peer) GetConceptCIDs() []CID {
 	ret := make([]CID, 0)
-	for cid := range p.CIDs {
+	for cid := range p.ConceptCIDs {
 		ret = append(ret, cid)
 	}
 	return ret
 }
+
+func (p *Peer) AddInstanceCID(cid CID)    { p.InstanceCIDs[cid] = true }
+func (p *Peer) RemoveInstanceCID(cid CID) { delete(p.InstanceCIDs, cid) }
+func (p Peer) GetInstanceCIDs() []CID {
+	ret := make([]CID, 0)
+	for cid := range p.InstanceCIDs {
+		ret = append(ret, cid)
+	}
+	return ret
+}
+
 func (p Peer) GetTimestamp() time.Time { return p.Timestamp }
-func (p *Peer) AddCID(cid CID)         { p.CIDs[cid] = true }
-func (p *Peer) RemoveCID(cid CID)      { delete(p.CIDs, cid) }
 
 func (p *Peer) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		ID        PeerID
-		OwnerGUID GUID
-		CIDs      []CID
-		Timestamp time.Time
+		ID           PeerID
+		OwnerGUID    InstanceGUID
+		ConceptCIDs  []CID
+		InstanceCIDs []CID
+		Timestamp    time.Time
 	}{
-		ID:        p.ID,
-		OwnerGUID: p.OwnerGUID,
-		CIDs:      p.GetCIDs(),
-		Timestamp: p.Timestamp,
+		ID:           p.ID,
+		OwnerGUID:    p.OwnerGUID,
+		ConceptCIDs:  p.GetConceptCIDs(),
+		InstanceCIDs: p.GetInstanceCIDs(),
+		Timestamp:    p.Timestamp,
 	})
 }
 
 func (p *Peer) UnmarshalJSON(data []byte) error {
 	var temp struct {
-		ID        PeerID    `json:"id"`
-		OwnerGUID GUID      `json:"ownerGuid"`
-		CIDs      []CID     `json:"cids"`
-		Timestamp time.Time `json:"timestamp"`
+		ID           PeerID
+		OwnerGUID    InstanceGUID
+		ConceptCIDs  []CID
+		InstanceCIDs []CID
+		Timestamp    time.Time
 	}
 
 	if err := json.Unmarshal(data, &temp); err != nil {
@@ -203,27 +226,31 @@ func (p *Peer) UnmarshalJSON(data []byte) error {
 	p.ID = temp.ID
 	p.OwnerGUID = temp.OwnerGUID
 	p.Timestamp = temp.Timestamp
-	p.CIDs = make(map[CID]bool)
-
-	for _, cid := range temp.CIDs {
-		p.CIDs[cid] = true
+	p.ConceptCIDs = make(map[CID]bool)
+	for _, cid := range temp.ConceptCIDs {
+		p.ConceptCIDs[cid] = true
+	}
+	p.InstanceCIDs = make(map[CID]bool)
+	for _, cid := range temp.InstanceCIDs {
+		p.InstanceCIDs[cid] = true
 	}
 
 	return nil
 }
 
 type PeerMessage struct {
-	PeerID        PeerID          `json:"peerId"`
-	OwnerGUID     GUID            `json:"ownerGuid"`
-	CIDs          []CID           `json:"cids"`
-	Relationships RelationshipMap `json:"relationships"`
+	PeerID        PeerID
+	OwnerGUID     InstanceGUID
+	ConceptCIDs   []CID
+	InstanceCIDs  []CID
+	Relationships RelationshipMap
 }
 
 type PeerMap map[PeerID]Peer_i
 
 type ConceptFilter struct {
-	CID            string
-	GUID           GUID
+	CID            CID
+	GUID           ConceptGUID
 	Name           string
 	Description    string
 	Type           string
@@ -231,9 +258,9 @@ type ConceptFilter struct {
 }
 
 var (
-	conceptMap ConceptMap
-	GUID2CID   GUID2CIDMap
-	conceptMu  sync.RWMutex
+	conceptMap    ConceptMap
+	conceptID2CID ConceptGUID2CIDMap
+	conceptMu     sync.RWMutex
 
 	relationshipMap RelationshipMap
 
@@ -241,14 +268,83 @@ var (
 	peerMapMu sync.RWMutex
 	peerID    PeerID
 
-	ownerGUID GUID
+	ownerGUID InstanceGUID
 	ownerMu   sync.RWMutex
+
+	instanceMap    ConceptInstanceMap
+	instanceID2CID InstanceGUID2CIDMap
 )
 
-func (g GUID) AsConcept() *Concept {
+func (g ConceptGUID) AsConcept() *Concept {
 	c, ok := conceptMap[g]
 	if ok {
 		return c
+	}
+	return nil
+}
+
+func (cid CID) AsConcept(ctx context.Context) (*Concept, error) {
+	conceptReader, err := network.Get(ctx, cid)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get Concept: %s: %v", cid, err)
+	}
+	var c Concept
+	err = json.NewDecoder(conceptReader).Decode(&c)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse Concept: %s: %v", cid, err)
+	}
+	c.CID = cid
+	return &c, nil
+}
+
+func (cid CID) AsInstanceConcept(ctx context.Context) (ConceptInstance_i, error) {
+	conceptReader, err := network.Get(ctx, cid)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get Instance: %s: %v", cid, err)
+	}
+	data, err := io.ReadAll(conceptReader)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read data from concept reader: %s: %v", cid, err)
+	}
+
+	instance, err := UnmarshalJSON2ConceptInstance(data)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse Instance: %s: %v", cid, err)
+	}
+	instance.SetCID(cid)
+	return instance, nil
+}
+
+func (pm *PeerMap) UnmarshalJSON(data []byte) error {
+	var rawMap map[PeerID]json.RawMessage
+	if err := json.Unmarshal(data, &rawMap); err != nil {
+		return err
+	}
+
+	*pm = make(PeerMap)
+	for peerID, raw := range rawMap {
+		var p Peer
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return err
+		}
+		(*pm)[peerID] = &p
+	}
+	return nil
+}
+
+func (rm *RelationshipMap) UnmarshalJSON(data []byte) error {
+	var rawMap map[ConceptGUID]json.RawMessage
+	if err := json.Unmarshal(data, &rawMap); err != nil {
+		return err
+	}
+
+	*rm = make(RelationshipMap)
+	for guid, raw := range rawMap {
+		var r Relationship
+		if err := json.Unmarshal(raw, &r); err != nil {
+			return err
+		}
+		(*rm)[guid] = &r
 	}
 	return nil
 }

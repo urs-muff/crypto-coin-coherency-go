@@ -294,7 +294,7 @@ concepts:
     relationships:
       - type: Interacts With
         target: Communication
-      - type: Facilitates
+      - type: Manifests As
         target: Information
 
   - name: Form
@@ -346,13 +346,6 @@ concepts:
     description: An idea or mental image formed by thinking
     type: FundamentalConcept
 
-  - name: Investment
-    description: The act of dedicating resources with the expectation of future benefits
-    type: FundamentalConcept
-    relationships:
-      - type: Influences
-        target: Coherence Score
-
   - name: Reward
     description: A benefit given in recognition of effort, achievement, or contribution
     type: FundamentalConcept
@@ -371,7 +364,7 @@ concepts:
     description: An action or input that adds value or supports the goals of a system
     type: FundamentalConcept
     relationships:
-      - type: Generates
+      - type: Manifests As
         target: Reward
       - type: Influences
         target: Coherence Score
@@ -390,7 +383,7 @@ concepts:
         target: Contribution
       - type: Influences
         target: Coherence
-      - type: Facilitates
+      - type: Influences
         target: Synergy
       - type: Influences
         target: Motivation
@@ -405,7 +398,7 @@ concepts:
         target: Intention
       - type: Influences
         target: Investment
-      - type: Facilitates
+      - type: Influences
         target: Flow State
 
   - name: Flow State
@@ -437,7 +430,7 @@ concepts:
     description: Measures and technologies used to protect user data and ensure the integrity of transactions.
     type: BuildingBlockConcept
     relationships:
-      - type: Facilitates
+      - type: Influences
         target: Trust
 
   - name: Trust
@@ -451,63 +444,36 @@ concepts:
     description: The ability of the network to handle increased load and complexity without performance degradation.
     type: BuildingBlockConcept
     relationships:
-      - type: Facilitates
+      - type: Influences
         target: Network Growth
 
   - name: Network Growth
     description: The expansion of the network in terms of users, transactions, and capabilities.
     type: FundamentalConcept
     relationships:
-      - type: Facilitates
+      - type: Influences
         target: Innovation
 
   - name: Innovation
     description: The development of new concepts, technologies, or methods within the network.
     type: FundamentalConcept
     relationships:
-      - type: Emergent From
+      - type: Influences
         target: Collaboration
 
   - name: Collaboration
     description: Cooperative efforts between members to achieve common goals.
     type: BuildingBlockConcept
     relationships:
-      - type: Facilitates
+      - type: Influences
         target: Coherence
 
   - name: Regulatory Compliance
     description: Adherence to laws and regulations applicable to network operations.
     type: BuildingBlockConcept
     relationships:
-      - type: Facilitates
-        target: Governance
-
-  - name: Owner
-    description: An entity possessing rights over concepts or resources within the network, crucial for defining control and responsibilities.
-    type: FundamentalConcept
-    relationships:
-      - type: Has A
-        target: Asset
-      - type: Component Of
-        target: Governance
-
-  - name: Coin
-    description: Serves as the primary currency within the network, facilitating transactions, rewards, and economic interactions.
-    type: FundamentalConcept
-    relationships:
-      - type: Utilizes
-        target: Transaction
       - type: Influences
-        target: Economic System
-
-  - name: Transaction
-    description: Represents exchanges or transfers within the network, governed by smart contracts to ensure security and compliance.
-    type: FundamentalConcept
-    relationships:
-      - type: Composed Of
-        target: Coin
-      - type: Governed By
-        target: Smart Contract
+        target: Governance
 
   - name: Investment
     description: The commitment of resources with the expectation of future benefits, essential for network growth and innovation.
@@ -522,37 +488,17 @@ concepts:
     description: Inputs by members that add value or support the network's goals, pivotal for sustaining and enhancing the network's operations.
     type: FundamentalConcept
     relationships:
-      - type: Generates
+      - type: Manifests As
         target: Reward
       - type: Influences
         target: Network Coherence
-      - type: Facilitates
-        target: Community Engagement
-
-  - name: Asset
-    description: Any valuable resource, concept, or item owned within the network that can be traded, used, or leveraged.
-    type: FundamentalConcept
-    relationships:
-      - type: Component Of
-        target: Transaction
-      - type: Owned By
-        target: Owner
-
-  - name: Return
-    description: The benefits or gains received from investments or contributions within the network.
-    type: FundamentalConcept
-    relationships:
-      - type: Result Of
-        target: Investment
       - type: Influences
-        target: Owner Satisfaction
+        target: Community Engagement
 
   - name: Reward
     description: Benefits or recognition given to members for their contributions to the network's goals and coherence.
     type: FundamentalConcept
     relationships:
-      - type: Result Of
-        target: Contribution
       - type: Influences
         target: Member Motivation
 
@@ -562,16 +508,16 @@ concepts:
     relationships:
       - type: Influences
         target: Network Stability
-      - type: Result Of
+      - type: Influences
         target: Contribution
 
   - name: Economic Growth
     description: The increase in the economic capacity of the network through investments, innovations, and efficient resource management.
     type: BuildingBlockConcept
     relationships:
-      - type: Result Of
+      - type: Influences
         target: Investment
-      - type: Facilitates
+      - type: Influences
         target: Network Expansion
 
   - name: Marketplace
@@ -610,9 +556,64 @@ concepts:
     description: The contentment and approval of owners regarding their investments and the management of their assets within the network.
     type: FundamentalConcept
 
+  # Core System Concepts
+  - name: Owner
+    description: An entity possessing rights over concepts or resources within the network, crucial for defining control and responsibilities.
+    type: SystemConcept
+    relationships:
+      - type: Composed Of
+        target: Asset
+      - type: Component Of
+        target: Governance
+
+  - name: Coin
+    description: Serves as the primary currency within the network, facilitating transactions, rewards, and economic interactions.
+    type: SystemConcept
+    relationships:
+      - type: Utilizes
+        target: Transaction
+      - type: Influences
+        target: Economic System
+
+  - name: Transaction
+    description: Represents exchanges or transfers within the network, governed by smart contracts to ensure security and compliance.
+    type: SystemConcept
+    relationships:
+      - type: Composed Of
+        target: Coin
+      - type: Governed By
+        target: Smart Contract
+
+  - name: Asset
+    description: Any valuable resource, concept, or item owned within the network that can be traded, used, or leveraged.
+    type: SystemConcept
+    relationships:
+      - type: Component Of
+        target: Transaction
+
+  - name: Investment
+    description: The act of dedicating resources with the expectation of future benefits
+    type: SystemConcept
+    relationships:
+      - type: Influences
+        target: Coherence Score
+      - type: Manifests As
+        target: Return
+
+  - name: Return
+    description: The benefits or gains received from investments or contributions within the network.
+    type: SystemConcept
+    relationships:
+      - type: Influences
+        target: Owner Satisfaction
+
   - name: Smart Contract
     description: Automated, self-executing contracts with the terms directly written into code, providing secure, transparent, and conflict-free transactional operations within the network.
-    type: FundamentalConcept
+    type: SystemConcept
+
+  - name: Contract Evaluator
+    description: Provides an API to evaluate the conditions of smart contracts, ensuring that they are executed only when their stipulated criteria are met.
+    type: SystemConcept
 
 relationships:
   - name: Component Of
