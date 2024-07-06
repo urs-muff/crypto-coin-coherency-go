@@ -51,10 +51,10 @@ func setupRoutes(r *gin.Engine) {
 	r.POST("/steward", updateSteward_h)
 	r.GET("/steward", getSteward_h)
 
-	// r.POST("/seed", addSeed_h)
-	// r.DELETE("/seed/:guid", deleteSeed_h)
-	// r.GET("/seed/:guid", getSeed_h)
-	// r.GET("/seeds", querySeeds_h)
+	r.POST("/seed", addSeed_h)
+	r.DELETE("/seed/:guid", deleteSeed_h)
+	r.GET("/seed/:guid", getSeed_h)
+	r.GET("/seeds", querySeeds_h)
 
 	r.GET("/peers", listPeers_h)
 

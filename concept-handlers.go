@@ -9,6 +9,20 @@ import (
 	"github.com/google/uuid"
 )
 
+func getConcept_h(c *gin.Context) {
+	guid := ConceptGUID(c.Param("guid"))
+
+	conceptMu.RLock()
+	concept, exists := conceptMap[guid]
+	conceptMu.RUnlock()
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Concept not found"})
+		return
+	}
+	c.JSON(http.StatusOK, concept)
+}
+
 func addConcept_h(c *gin.Context) {
 	var newConcept struct {
 		Name        string `json:"name"`
@@ -35,45 +49,6 @@ func addConcept_h(c *gin.Context) {
 		"guid": concept.ID,
 		"cid":  string(concept.CID),
 	})
-}
-
-func getConcept_h(c *gin.Context) {
-	guid := ConceptGUID(c.Param("guid"))
-
-	conceptMu.RLock()
-	concept, exists := conceptMap[guid]
-	conceptMu.RUnlock()
-
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Concept not found"})
-		return
-	}
-	c.JSON(http.StatusOK, concept)
-}
-
-func updateSteward_h(c *gin.Context) {
-	var stewardSeed StewardSeed
-	if err := c.BindJSON(&stewardSeed); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid steward data"})
-		return
-	}
-
-	stewardSeed.ConceptID = StewardConcept
-	stewardSeed.SeedID = stewardID
-	stewardSeed.Timestamp = time.Now()
-
-	addOrUpdateSeed(c.Request.Context(), &stewardSeed, peerID)
-
-	c.JSON(http.StatusOK, gin.H{"message": "Steward updated successfully", "guid": stewardSeed.SeedID})
-}
-
-func getSteward_h(c *gin.Context) {
-	stewardSeed, exists := seedMap[stewardID]
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Steward not found"})
-		return
-	}
-	c.JSON(http.StatusOK, stewardSeed)
 }
 
 func deleteConcept_h(c *gin.Context) {
@@ -120,4 +95,29 @@ func queryConcepts_h(c *gin.Context) {
 
 	concepts := filterConcepts(filter)
 	c.JSON(http.StatusOK, concepts)
+}
+
+func getSteward_h(c *gin.Context) {
+	stewardSeed, exists := seedMap[stewardID]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Steward not found"})
+		return
+	}
+	c.JSON(http.StatusOK, stewardSeed)
+}
+
+func updateSteward_h(c *gin.Context) {
+	var stewardSeed StewardSeed
+	if err := c.BindJSON(&stewardSeed); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid steward data"})
+		return
+	}
+
+	stewardSeed.ConceptID = StewardConcept
+	stewardSeed.SeedID = stewardID
+	stewardSeed.Timestamp = time.Now()
+
+	addOrUpdateSeed(c.Request.Context(), &stewardSeed, peerID)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Steward updated successfully", "guid": stewardSeed.SeedID})
 }
