@@ -21,7 +21,8 @@ var (
 	CoinConcept              ConceptGUID
 	SmartContractConcept     ConceptGUID
 	ContractEvaluatorConcept ConceptGUID
-	InvestmentConcept        ConceptGUID
+	ConceptInvestmentConcept ConceptGUID
+	SeedInvestmentConcept    ConceptGUID
 	TransactionConcept       ConceptGUID
 	ReturnConcept            ConceptGUID
 )
@@ -140,11 +141,17 @@ type ContractEvaluatorSeed struct {
 }
 
 // Investment is a type of transaction with associated smart contracts
-type InvestmentSeed struct {
+type ConceptInvestmentSeed struct {
+	*CoreSeed
+	InvestorID SeedGUID
+	TargetID   ConceptGUID
+	Amount     float64
+}
+
+type SeedInvestmentSeed struct {
 	*CoreSeed
 	InvestorID SeedGUID
 	TargetID   SeedGUID
-	TargetType string
 	Amount     float64
 }
 
@@ -330,17 +337,30 @@ func (i *ContractEvaluatorSeed) Update(ctx context.Context) error {
 	return i.DefaultUpdate(ctx, json)
 }
 
-func (i *InvestmentSeed) String() string {
-	return fmt.Sprintf("%s, Investor=[%s], Target=[%s], Type=%s, Amount=%f",
+func (i *ConceptInvestmentSeed) String() string {
+	return fmt.Sprintf("%s, Investor=[%s], Target=[%s], Amount=%f",
 		i.DefaultString(),
 		i.InvestorID.AsStewardSeed().AsString(),
-		i.TargetID.AsSeed(),
-		i.TargetType,
+		i.TargetID.AsConcept(),
 		i.Amount,
 	)
 }
 
-func (i *InvestmentSeed) Update(ctx context.Context) error {
+func (i *ConceptInvestmentSeed) Update(ctx context.Context) error {
+	json, _ := json.Marshal(i)
+	return i.DefaultUpdate(ctx, json)
+}
+
+func (i *SeedInvestmentSeed) String() string {
+	return fmt.Sprintf("%s, Investor=[%s], Target=[%s], Amount=%f",
+		i.DefaultString(),
+		i.InvestorID.AsStewardSeed().AsString(),
+		i.TargetID.AsSeed(),
+		i.Amount,
+	)
+}
+
+func (i *SeedInvestmentSeed) Update(ctx context.Context) error {
 	json, _ := json.Marshal(i)
 	return i.DefaultUpdate(ctx, json)
 }
@@ -394,8 +414,11 @@ func initSeedUnmarshal() {
 		ContractEvaluatorConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*ContractEvaluatorSeed](data)
 		},
-		InvestmentConcept: func(data json.RawMessage) (Seed_i, error) {
-			return genericUnmarshalSeed[*InvestmentSeed](data)
+		ConceptInvestmentConcept: func(data json.RawMessage) (Seed_i, error) {
+			return genericUnmarshalSeed[*ConceptInvestmentSeed](data)
+		},
+		SeedInvestmentConcept: func(data json.RawMessage) (Seed_i, error) {
+			return genericUnmarshalSeed[*SeedInvestmentSeed](data)
 		},
 		TransactionConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*TransactionSeed](data)

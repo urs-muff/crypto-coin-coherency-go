@@ -25,8 +25,10 @@ func (sf *SeedNursery) CreateSeed(conceptID ConceptGUID, data map[string]any) (S
 		return sf.createSmartContractSeed(baseSeed, data)
 	case ContractEvaluatorConcept:
 		return sf.createContractEvaluatorSeed(baseSeed, data)
-	case InvestmentConcept:
-		return sf.createInvestmentSeed(baseSeed, data)
+	case ConceptInvestmentConcept:
+		return sf.createConceptInvestmentSeed(baseSeed, data)
+	case SeedInvestmentConcept:
+		return sf.createSeedInvestmentSeed(baseSeed, data)
 	case TransactionConcept:
 		return sf.createTransactionSeed(baseSeed, data)
 	case ReturnConcept:
@@ -48,6 +50,10 @@ func (sf *SeedNursery) createAssetSeed(base *CoreSeed, data map[string]any) (*As
 	seed := &AssetSeed{CoreSeed: base}
 	if stewardID, ok := data["StewardID"].(string); ok {
 		seed.StewardID = SeedGUID(stewardID)
+		_, exists := seedMap[seed.StewardID]
+		if !exists {
+			return nil, fmt.Errorf("asset StewardID invalid: %s", stewardID)
+		}
 	} else {
 		return nil, fmt.Errorf("asset missing StewardID: %s", data)
 	}
@@ -92,16 +98,43 @@ func (sf *SeedNursery) createContractEvaluatorSeed(base *CoreSeed, data map[stri
 	return seed, nil
 }
 
-func (sf *SeedNursery) createInvestmentSeed(base *CoreSeed, data map[string]any) (*InvestmentSeed, error) {
-	seed := &InvestmentSeed{CoreSeed: base}
+func (sf *SeedNursery) createConceptInvestmentSeed(base *CoreSeed, data map[string]any) (*ConceptInvestmentSeed, error) {
+	seed := &ConceptInvestmentSeed{CoreSeed: base}
 	if investorID, ok := data["InvestorID"].(string); ok {
 		seed.InvestorID = SeedGUID(investorID)
+		_, exists := seedMap[seed.InvestorID]
+		if !exists {
+			return nil, fmt.Errorf("asset InvestorID invalid: %s", investorID)
+		}
+	}
+	if targetID, ok := data["TargetID"].(string); ok {
+		seed.TargetID = ConceptGUID(targetID)
+		_, exists := conceptMap[seed.TargetID]
+		if !exists {
+			return nil, fmt.Errorf("asset TargetID invalid: %s", targetID)
+		}
+	}
+	if amount, ok := data["Amount"].(float64); ok {
+		seed.Amount = amount
+	}
+	return seed, nil
+}
+
+func (sf *SeedNursery) createSeedInvestmentSeed(base *CoreSeed, data map[string]any) (*SeedInvestmentSeed, error) {
+	seed := &SeedInvestmentSeed{CoreSeed: base}
+	if investorID, ok := data["InvestorID"].(string); ok {
+		seed.InvestorID = SeedGUID(investorID)
+		_, exists := seedMap[seed.InvestorID]
+		if !exists {
+			return nil, fmt.Errorf("asset InvestorID invalid: %s", investorID)
+		}
 	}
 	if targetID, ok := data["TargetID"].(string); ok {
 		seed.TargetID = SeedGUID(targetID)
-	}
-	if targetType, ok := data["TargetType"].(string); ok {
-		seed.TargetType = targetType
+		_, exists := seedMap[seed.TargetID]
+		if !exists {
+			return nil, fmt.Errorf("asset TargetID invalid: %s", targetID)
+		}
 	}
 	if amount, ok := data["Amount"].(float64); ok {
 		seed.Amount = amount

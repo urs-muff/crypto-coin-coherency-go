@@ -587,7 +587,16 @@ concepts:
       - type: Component Of
         target: Transaction
 
-  - name: Investment
+  - name: Concept Investment
+    description: The act of dedicating resources with the expectation of future benefits
+    type: SystemConcept
+    relationships:
+      - type: Influences
+        target: Coherence Score
+      - type: Manifests As
+        target: Return
+
+  - name: Seed Investment
     description: The act of dedicating resources with the expectation of future benefits
     type: SystemConcept
     relationships:
