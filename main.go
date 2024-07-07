@@ -45,6 +45,7 @@ func setupRoutes(r *gin.Engine) {
 	r.Use(corsMiddleware())
 	r.POST("/concept", addConcept_h)
 	r.DELETE("/concept/:guid", deleteConcept_h)
+	r.PUT("/concept/:id", updateConcept_h)
 	r.GET("/concept/:guid", getConcept_h)
 	r.GET("/concepts", queryConcepts_h)
 
@@ -63,6 +64,7 @@ func setupRoutes(r *gin.Engine) {
 
 	r.POST("/relationship", addRelationship_h)
 	r.PUT("/relationship/:id/deepen", deepenRelationship_h)
+	r.GET("/relationships", getRelationships_h)
 	r.GET("/relationship/:id", getRelationship_h)
 	r.GET("/relationship-types", getRelationshipTypes_h)
 	r.GET("/relationship-type/:type", getRelationshipsByType_h)

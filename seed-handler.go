@@ -91,5 +91,9 @@ func querySeeds_h(c *gin.Context) {
 	//	}
 	//
 	//	seeds := filterSeeds(filter)
-	//	c.JSON(http.StatusOK, seeds)
+	seeds := []Seed_i{}
+	for _, seed := range seedMap {
+		seeds = append(seeds, seed)
+	}
+	c.JSON(http.StatusOK, seeds)
 }

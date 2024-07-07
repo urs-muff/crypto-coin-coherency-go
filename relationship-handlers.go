@@ -49,6 +49,15 @@ func deepenRelationship_h(c *gin.Context) {
 	}
 }
 
+func getRelationships_h(c *gin.Context) {
+	relationships := []Relationship{}
+	for _, relationship := range relationshipMap {
+		relationships = append(relationships, *relationship)
+	}
+
+	c.JSON(http.StatusOK, relationships)
+}
+
 func getRelationship_h(c *gin.Context) {
 	id := ConceptGUID(c.Param("id"))
 	if relationship, ok := relationshipMap[id]; ok {
