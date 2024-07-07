@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 type SeedNursery struct {
 }
@@ -35,30 +38,36 @@ func (sf *SeedNursery) CreateSeed(conceptID ConceptGUID, data map[string]any) (S
 
 func (sf *SeedNursery) createStewardSeed(base *CoreSeed, data map[string]any) (*StewardSeed, error) {
 	seed := &StewardSeed{CoreSeed: base}
-	if assets, ok := data["stewardAssets"].([]string); ok {
-		for _, asset := range assets {
-			seed.StewardAssets = append(seed.StewardAssets, SeedGUID(asset))
-		}
-	}
-	if investments, ok := data["investments"].([]string); ok {
-		for _, investment := range investments {
-			seed.Investments = append(seed.Investments, SeedGUID(investment))
-		}
+	if energyBalance, ok := data["EnergyBalance"].(float64); ok {
+		seed.EnergyBalance = energyBalance
 	}
 	return seed, nil
 }
 
 func (sf *SeedNursery) createAssetSeed(base *CoreSeed, data map[string]any) (*AssetSeed, error) {
 	seed := &AssetSeed{CoreSeed: base}
-	if steward, ok := data["steward"].(string); ok {
-		seed.Steward = SeedGUID(steward)
+	if stewardID, ok := data["StewardID"].(string); ok {
+		seed.StewardID = SeedGUID(stewardID)
+	} else {
+		return nil, fmt.Errorf("asset missing StewardID: %s", data)
+	}
+	if contentType, ok := data["ContentType"].(string); ok {
+		seed.ContentType = contentType
+	} else {
+		seed.ContentType = "text/plain"
+		log.Printf("Asset missing ContentType: %s\n", data)
+	}
+	if content, ok := data["Content"].(string); ok {
+		seed.Content = content
+	} else {
+		log.Printf("Asset missing Content: %s\n", data)
 	}
 	return seed, nil
 }
 
 func (sf *SeedNursery) createCoinSeed(base *CoreSeed, data map[string]any) (*CoinSeed, error) {
 	seed := &CoinSeed{CoreSeed: base}
-	if value, ok := data["value"].(float64); ok {
+	if value, ok := data["Value"].(float64); ok {
 		seed.Value = value
 	}
 	return seed, nil

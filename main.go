@@ -45,15 +45,17 @@ func setupRoutes(r *gin.Engine) {
 	r.Use(corsMiddleware())
 	r.POST("/concept", addConcept_h)
 	r.DELETE("/concept/:guid", deleteConcept_h)
-	r.PUT("/concept/:id", updateConcept_h)
+	r.PUT("/concept/:guid", updateConcept_h)
 	r.GET("/concept/:guid", getConcept_h)
+	r.GET("/concept/:guid/name", getConceptName_h)
 	r.GET("/concepts", queryConcepts_h)
 
-	r.POST("/steward", updateSteward_h)
+	r.PUT("/steward", updateSteward_h)
 	r.GET("/steward", getSteward_h)
 
 	r.POST("/seed", addSeed_h)
 	r.DELETE("/seed/:guid", deleteSeed_h)
+	r.PUT("/seed/:guid", updateSeed_h)
 	r.GET("/seed/:guid", getSeed_h)
 	r.GET("/seeds", querySeeds_h)
 
@@ -212,13 +214,10 @@ func loadOrCreateSteward(ctx context.Context) {
 		steward := NewStewardSeed("Urs Muff", "Creator of this network")
 		steward.SeedID = stewardID
 		addOrUpdateSeed(ctx, steward, peerID)
-		asset1 := NewAssetSeed("First Thing", "", steward.SeedID)
-		addOrUpdateSeed(ctx, asset1, peerID)
-		steward.StewardAssets = append(steward.StewardAssets, asset1.SeedID)
-		addOrUpdateSeed(ctx, steward, peerID)
-		if err := network.Load(ctx, seedsPath, &seedMap); err != nil {
-			log.Printf("Failed to load seeds: %v\n", err)
-		}
+
+		// if err := network.Load(ctx, seedsPath, &seedMap); err != nil {
+		// 	log.Printf("Failed to load seeds: %v\n", err)
+		// }
 
 		// peerJson, _ := json.Marshal(peerMap[peerID])
 		// fmt.Printf("Peer: %s\n", string(peerJson))

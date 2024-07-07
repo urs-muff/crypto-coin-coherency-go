@@ -1,4 +1,4 @@
-module kudo-network
+module cccn
 
 go 1.22.4
 

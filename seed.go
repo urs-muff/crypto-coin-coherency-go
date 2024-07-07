@@ -109,20 +109,21 @@ type RenderAs_i interface {
 // StewardSeed represents an entity that can steward assets and make investments
 type StewardSeed struct {
 	*CoreSeed
-	StewardAssets []SeedGUID // List of asset IDs the steward cares for
-	Investments   []SeedGUID // Investments made by the steward
+	EnergyBalance float64
 }
 
 // Asset represents a valuable item or resource within the network
 type AssetSeed struct {
 	*CoreSeed
-	Steward SeedGUID // ID of the steward
+	StewardID   SeedGUID
+	ContentType string
+	Content     string
 }
 
 // Coin represents units of currency used within the network for transactions
 type CoinSeed struct {
 	*CoreSeed
-	Value float64 // Monetary value of the coin
+	Value float64
 }
 
 // SmartContract represents the contractual conditions attached to transactions
@@ -263,14 +264,12 @@ func (ci *CoreSeed) String() string { return ci.DefaultString() }
 
 func NewStewardSeed(name string, desc string) *StewardSeed {
 	return &StewardSeed{
-		CoreSeed:      NewCoreSeed(StewardConcept, name, desc),
-		StewardAssets: []SeedGUID{},
-		Investments:   []SeedGUID{},
+		CoreSeed: NewCoreSeed(StewardConcept, name, desc),
 	}
 }
 
 func (i *StewardSeed) String() string {
-	return fmt.Sprintf("%s [OwnedAssets=%v, Investments=%v]", i.DefaultString(), i.StewardAssets, i.Investments)
+	return fmt.Sprintf("%s [EnergyBalance=%f]", i.DefaultString(), i.EnergyBalance)
 }
 
 func (i *StewardSeed) Update(ctx context.Context) error {
@@ -280,13 +279,13 @@ func (i *StewardSeed) Update(ctx context.Context) error {
 
 func NewAssetSeed(name string, desc string, steward SeedGUID) *AssetSeed {
 	return &AssetSeed{
-		CoreSeed: NewCoreSeed(AssetConcept, name, desc),
-		Steward:  steward,
+		CoreSeed:  NewCoreSeed(AssetConcept, name, desc),
+		StewardID: steward,
 	}
 }
 
 func (ci *AssetSeed) String() string {
-	return fmt.Sprintf("%s, Steward=[%s]", ci.DefaultString(), ci.Steward.AsStewardSeed().AsString())
+	return fmt.Sprintf("%s, Steward=[%s]", ci.DefaultString(), ci.StewardID.AsStewardSeed().AsString())
 }
 
 func (i *AssetSeed) Update(ctx context.Context) error {

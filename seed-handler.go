@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +30,6 @@ func addSeed_h(c *gin.Context) {
 		return
 	}
 
-	log.Printf("addSeed_h: %s\n", seedData)
 	conceptID, ok := seedData["ConceptID"].(string)
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ConceptID is required"})
@@ -50,6 +51,39 @@ func addSeed_h(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"guid": seed.GetSeedID(),
 		"cid":  string(seed.GetCID()),
+	})
+}
+
+func updateSeed_h(c *gin.Context) {
+	seedID := SeedGUID(c.Param("guid"))
+
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse request body"})
+		return
+	}
+	updatedSeed, err := UnmarshalJSON2Seed(body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse request body"})
+		return
+	}
+
+	existingSeed, exists := seedMap[seedID]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Seed not found"})
+		return
+	}
+
+	updatedSeed.SetCID(existingSeed.GetCID())
+	updatedSeed.GetCoreSeed().Timestamp = time.Now()
+	if err := addOrUpdateSeed(c.Request.Context(), updatedSeed, peerID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update seed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"guid": seedID,
+		"cid":  string(updatedSeed.GetCID()),
 	})
 }
 
@@ -98,4 +132,37 @@ func querySeeds_h(c *gin.Context) {
 		seeds = append(seeds, seed)
 	}
 	c.JSON(http.StatusOK, seeds)
+}
+
+func getSteward_h(c *gin.Context) {
+	stewardSeed, exists := seedMap[stewardID]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Steward not found"})
+		return
+	}
+	c.JSON(http.StatusOK, stewardSeed)
+}
+
+func updateSteward_h(c *gin.Context) {
+	var stewardSeed StewardSeed
+	if err := c.BindJSON(&stewardSeed); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid steward data"})
+		return
+	}
+
+	existingSteward, exists := seedMap[stewardID]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Steward not found"})
+		return
+	}
+
+	stewardSeed.CID = existingSteward.GetCID()
+	stewardSeed.ConceptID = StewardConcept
+	stewardSeed.SeedID = stewardID
+	// stewardSeed.EnergyBalance = existingSteward.GetSeedID().AsStewardSeed().EnergyBalance
+	stewardSeed.Timestamp = time.Now()
+
+	addOrUpdateSeed(c.Request.Context(), &stewardSeed, peerID)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Steward updated successfully", "guid": stewardSeed.SeedID})
 }
