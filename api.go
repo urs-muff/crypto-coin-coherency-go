@@ -297,7 +297,7 @@ func (cid CID) AsConcept(ctx context.Context) (*Concept, error) {
 	return &c, nil
 }
 
-func (cid CID) AsSeedConcept(ctx context.Context) (Seed_i, error) {
+func (cid CID) AsSeed(ctx context.Context) (Seed_i, error) {
 	conceptReader, err := network.Get(ctx, cid)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get seed: %s: %v", cid, err)

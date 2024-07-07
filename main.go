@@ -179,7 +179,7 @@ func initializeLists(ctx context.Context) {
 	}
 
 	for _, cid := range peerMap[peerID].GetSeedCIDs() {
-		i, err := cid.AsSeedConcept(ctx)
+		i, err := cid.AsSeed(ctx)
 		if err != nil {
 			log.Fatalf("Unable to parse seed: %s: %v", cid, err)
 		} else {
@@ -223,7 +223,7 @@ func loadOrCreateSteward(ctx context.Context) {
 
 		// cid := seedID2CID[stewardID]
 		//
-		// if seed, err := cid.AsSeedConcept(ctx); err != nil {
+		// if seed, err := cid.AsSeed(ctx); err != nil {
 		// 	log.Fatalf("Unable to parse Concept: %s: %v", cid, err)
 		// } else {
 		// 	log.Printf("Seed: %s\n", seed)
