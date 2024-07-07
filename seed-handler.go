@@ -21,20 +21,22 @@ func getSeed_h(c *gin.Context) {
 }
 
 func addSeed_h(c *gin.Context) {
-	var newSeed struct {
-		Name        string         `json:"name"`
-		Description string         `json:"description"`
-		Concept     string         `json:"concept"`
-		Data        map[string]any `json:"data"`
-	}
+	var seedData map[string]any
 
-	if err := c.BindJSON(&newSeed); err != nil {
+	if err := c.BindJSON(&seedData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse request body"})
 		return
 	}
 
+	log.Printf("addSeed_h: %s\n", seedData)
+	conceptID, ok := seedData["ConceptID"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ConceptID is required"})
+		return
+	}
+
 	generator := &SeedNursery{}
-	seed, err := generator.CreateSeed(newSeed.Concept, newSeed.Name, newSeed.Description, newSeed.Data)
+	seed, err := generator.CreateSeed(ConceptGUID(conceptID), seedData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Failed to create seed: %v", err)})
 		return

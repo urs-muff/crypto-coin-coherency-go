@@ -141,9 +141,10 @@ type ContractEvaluatorSeed struct {
 // Investment is a type of transaction with associated smart contracts
 type InvestmentSeed struct {
 	*CoreSeed
-	Steward       SeedGUID // Steward of the investment
-	Asset         SeedGUID // Asset involved in the investment
-	SmartContract SeedGUID // Associated smart contract
+	InvestorID SeedGUID
+	TargetID   SeedGUID
+	TargetType string
+	Amount     float64
 }
 
 // Transaction represents an exchange or transfer of assets, coins, or services
@@ -330,13 +331,14 @@ func (i *ContractEvaluatorSeed) Update(ctx context.Context) error {
 	return i.DefaultUpdate(ctx, json)
 }
 
-func NewInvestmentSeed(name string, desc string, steward SeedGUID, asset SeedGUID, smartContract SeedGUID) *InvestmentSeed {
-	return &InvestmentSeed{
-		CoreSeed:      NewCoreSeed(InvestmentConcept, name, desc),
-		Steward:       steward,
-		Asset:         asset,
-		SmartContract: smartContract,
-	}
+func (i *InvestmentSeed) String() string {
+	return fmt.Sprintf("%s, Investor=[%s], Target=[%s], Type=%s, Amount=%f",
+		i.DefaultString(),
+		i.InvestorID.AsStewardSeed().AsString(),
+		i.TargetID.AsSeed(),
+		i.TargetType,
+		i.Amount,
+	)
 }
 
 func (i *InvestmentSeed) Update(ctx context.Context) error {

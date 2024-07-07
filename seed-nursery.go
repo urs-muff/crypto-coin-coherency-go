@@ -6,28 +6,30 @@ type SeedNursery struct {
 }
 
 // CreateSeed creates a new Seed based on the provided concept type
-func (sf *SeedNursery) CreateSeed(concept string, name string, description string, data map[string]any) (Seed_i, error) {
-	baseSeed := NewCoreSeed(ConceptGUID(concept), name, description)
+func (sf *SeedNursery) CreateSeed(conceptID ConceptGUID, data map[string]any) (Seed_i, error) {
+	name, _ := data["Name"].(string)
+	description, _ := data["Description"].(string)
+	baseSeed := NewCoreSeed(conceptID, name, description)
 
-	switch concept {
-	case "Steward":
+	switch conceptID {
+	case StewardConcept:
 		return sf.createStewardSeed(baseSeed, data)
-	case "Asset":
+	case AssetConcept:
 		return sf.createAssetSeed(baseSeed, data)
-	case "Coin":
+	case CoinConcept:
 		return sf.createCoinSeed(baseSeed, data)
-	case "SmartContract":
+	case SmartContractConcept:
 		return sf.createSmartContractSeed(baseSeed, data)
-	case "ContractEvaluator":
+	case ContractEvaluatorConcept:
 		return sf.createContractEvaluatorSeed(baseSeed, data)
-	case "Investment":
+	case InvestmentConcept:
 		return sf.createInvestmentSeed(baseSeed, data)
-	case "Transaction":
+	case TransactionConcept:
 		return sf.createTransactionSeed(baseSeed, data)
-	case "Return":
+	case ReturnConcept:
 		return sf.createReturnSeed(baseSeed, data)
 	default:
-		return nil, fmt.Errorf("concept not handled: %s", concept)
+		return nil, fmt.Errorf("concept not handled: %s", conceptID)
 	}
 }
 
@@ -83,14 +85,17 @@ func (sf *SeedNursery) createContractEvaluatorSeed(base *CoreSeed, data map[stri
 
 func (sf *SeedNursery) createInvestmentSeed(base *CoreSeed, data map[string]any) (*InvestmentSeed, error) {
 	seed := &InvestmentSeed{CoreSeed: base}
-	if steward, ok := data["steward"].(string); ok {
-		seed.Steward = SeedGUID(steward)
+	if investorID, ok := data["InvestorID"].(string); ok {
+		seed.InvestorID = SeedGUID(investorID)
 	}
-	if asset, ok := data["asset"].(string); ok {
-		seed.Asset = SeedGUID(asset)
+	if targetID, ok := data["TargetID"].(string); ok {
+		seed.TargetID = SeedGUID(targetID)
 	}
-	if contract, ok := data["smartContract"].(string); ok {
-		seed.SmartContract = SeedGUID(contract)
+	if targetType, ok := data["TargetType"].(string); ok {
+		seed.TargetType = targetType
+	}
+	if amount, ok := data["Amount"].(float64); ok {
+		seed.Amount = amount
 	}
 	return seed, nil
 }
