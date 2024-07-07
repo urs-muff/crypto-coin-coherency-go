@@ -271,7 +271,7 @@ var (
 	stewardID SeedGUID
 	stewardMu sync.RWMutex
 
-	seedMap    ConceptSeedMap
+	seedMap    SeedMap
 	seedID2CID SeedGUID2CIDMap
 )
 
@@ -297,7 +297,7 @@ func (cid CID) AsConcept(ctx context.Context) (*Concept, error) {
 	return &c, nil
 }
 
-func (cid CID) AsSeedConcept(ctx context.Context) (ConceptSeed_i, error) {
+func (cid CID) AsSeedConcept(ctx context.Context) (Seed_i, error) {
 	conceptReader, err := network.Get(ctx, cid)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get seed: %s: %v", cid, err)
@@ -307,7 +307,7 @@ func (cid CID) AsSeedConcept(ctx context.Context) (ConceptSeed_i, error) {
 		return nil, fmt.Errorf("unable to read data from concept reader: %s: %v", cid, err)
 	}
 
-	seed, err := UnmarshalJSON2ConceptSeed(data)
+	seed, err := UnmarshalJSON2Seed(data)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse seed: %s: %v", cid, err)
 	}

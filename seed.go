@@ -26,18 +26,18 @@ var (
 	ReturnConcept            ConceptGUID
 )
 
-type ConceptSeed_i interface {
+type Seed_i interface {
 	GetSeedID() SeedGUID
 	GetCID() CID
 	SetCID(cid CID)
 
 	Update(ctx context.Context) error
 
-	Seed() *ConceptSeed
+	GetCoreSeed() *CoreSeed
 }
 
-// ConceptSeed base structure for all seeds of concepts
-type ConceptSeed struct {
+// CoreSeed base structure for all seeds of concepts
+type CoreSeed struct {
 	CID         CID `json:"-"`
 	SeedID      SeedGUID
 	ConceptID   ConceptGUID // Identifies the type of concept this seed represents
@@ -59,39 +59,39 @@ type CoherenceVector_i interface {
 }
 
 type Copy_i interface {
-	Copy(ctx context.Context) (ConceptSeed_i, error)
+	Copy(ctx context.Context) (Seed_i, error)
 }
 
 type Merge_i interface {
-	Merge(ctx context.Context, other ConceptSeed_i) (ConceptSeed_i, error)
+	Merge(ctx context.Context, other Seed_i) (Seed_i, error)
 }
 
 type Move_i interface {
-	Move(ctx context.Context, from ConceptSeed_i, to ConceptSeed_i) error
+	Move(ctx context.Context, from Seed_i, to Seed_i) error
 }
 
 type Transform_i interface {
-	Transform(ctx context.Context, conceptID ConceptGUID) (ConceptSeed_i, error)
+	Transform(ctx context.Context, conceptID ConceptGUID) (Seed_i, error)
 }
 
 type Parent_i interface {
-	Parent() (ConceptSeed_i, error)
+	Parent() (Seed_i, error)
 }
 
 type Children_i interface {
-	Children() ([]ConceptSeed_i, error)
+	Children() ([]Seed_i, error)
 }
 
 type Related_i interface {
-	Related() ([]ConceptSeed_i, error)
+	Related() ([]Seed_i, error)
 }
 
 type RelatedByConcept_i interface {
-	RelatedByConcept(conceptID ConceptGUID) ([]ConceptSeed_i, error)
+	RelatedByConcept(conceptID ConceptGUID) ([]Seed_i, error)
 }
 
 type RelatedByName_i interface {
-	RelatedByName(name string) ([]ConceptSeed_i, error)
+	RelatedByName(name string) ([]Seed_i, error)
 }
 
 type Stream_i interface {
@@ -108,39 +108,39 @@ type RenderAs_i interface {
 
 // StewardSeed represents an entity that can steward assets and make investments
 type StewardSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	StewardAssets []SeedGUID // List of asset IDs the steward cares for
 	Investments   []SeedGUID // Investments made by the steward
 }
 
 // Asset represents a valuable item or resource within the network
 type AssetSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	Steward SeedGUID // ID of the steward
 }
 
 // Coin represents units of currency used within the network for transactions
 type CoinSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	Value float64 // Monetary value of the coin
 }
 
 // SmartContract represents the contractual conditions attached to transactions
 type SmartContractSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	ContractEvaluator SeedGUID // ID of the evaluator responsible for this contract
 	Conditions        string   // Detailed conditions as a string or structured data
 }
 
 // ContractEvaluator defines an entity responsible for evaluating smart contracts
 type ContractEvaluatorSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	EvaluationCriteria string // Criteria used to evaluate contracts
 }
 
 // Investment is a type of transaction with associated smart contracts
 type InvestmentSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	Steward       SeedGUID // Steward of the investment
 	Asset         SeedGUID // Asset involved in the investment
 	SmartContract SeedGUID // Associated smart contract
@@ -148,7 +148,7 @@ type InvestmentSeed struct {
 
 // Transaction represents an exchange or transfer of assets, coins, or services
 type TransactionSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	FromSteward SeedGUID // ID of the steward sending the asset or coins
 	ToSteward   SeedGUID // ID of the steward receiving the asset or coins
 	Asset       SeedGUID // Asset being transacted, if applicable
@@ -157,28 +157,28 @@ type TransactionSeed struct {
 
 // Return represents the benefits or gains from investments
 type ReturnSeed struct {
-	*ConceptSeed
+	*CoreSeed
 	Investment SeedGUID // Investment that generated this return
 	Amount     float64  // Quantitative value of the return
 }
 
-func (ci ConceptSeed) GetSeedID() SeedGUID {
+func (ci CoreSeed) GetSeedID() SeedGUID {
 	return ci.SeedID
 }
 
-func (ci ConceptSeed) GetCID() CID {
+func (ci CoreSeed) GetCID() CID {
 	return ci.CID
 }
 
-func (ci *ConceptSeed) SetCID(cid CID) {
+func (ci *CoreSeed) SetCID(cid CID) {
 	ci.CID = cid
 }
 
-func (ci *ConceptSeed) Seed() *ConceptSeed {
+func (ci *CoreSeed) GetCoreSeed() *CoreSeed {
 	return ci
 }
 
-func (ci *ConceptSeed) DefaultUpdate(ctx context.Context, json json.RawMessage) error {
+func (ci *CoreSeed) DefaultUpdate(ctx context.Context, json json.RawMessage) error {
 	// DEBUG: oldCID := ci.CID
 	if ci.CID != "" {
 		network.Remove(ctx, ci.CID)
@@ -197,11 +197,11 @@ func (ci *ConceptSeed) DefaultUpdate(ctx context.Context, json json.RawMessage) 
 	return nil
 }
 
-func (ci ConceptSeed) URI() string {
+func (ci CoreSeed) URI() string {
 	return "ipfs://" + string(ci.CID)
 }
 
-func (id SeedGUID) AsSeed() ConceptSeed_i {
+func (id SeedGUID) AsSeed() Seed_i {
 	seed, ok := seedMap[id]
 	if ok {
 		return seed
@@ -218,7 +218,7 @@ func (id SeedGUID) AsStewardSeed() *StewardSeed {
 	return nil
 }
 
-func addOrUpdateSeed(ctx context.Context, seed ConceptSeed_i, pID PeerID) error {
+func addOrUpdateSeed(ctx context.Context, seed Seed_i, pID PeerID) error {
 	if seed.GetCID() != "" {
 		peerMap[pID].RemoveSeedCID(seed.GetCID())
 	}
@@ -240,8 +240,8 @@ func addOrUpdateSeed(ctx context.Context, seed ConceptSeed_i, pID PeerID) error 
 	return nil
 }
 
-func NewConceptSeed(conceptID ConceptGUID, name string, desc string) *ConceptSeed {
-	return &ConceptSeed{
+func NewCoreSeed(conceptID ConceptGUID, name string, desc string) *CoreSeed {
+	return &CoreSeed{
 		SeedID:      SeedGUID(uuid.New().String()),
 		ConceptID:   conceptID,
 		Name:        name,
@@ -250,19 +250,19 @@ func NewConceptSeed(conceptID ConceptGUID, name string, desc string) *ConceptSee
 	}
 }
 
-func (ci *ConceptSeed) AsString() string {
+func (ci *CoreSeed) AsString() string {
 	return fmt.Sprintf("Name=%s, Desc=%s", ci.Name, ci.Description)
 }
 
-func (ci *ConceptSeed) DefaultString() string {
+func (ci *CoreSeed) DefaultString() string {
 	return fmt.Sprintf("CID=%s, ID=%s, Concept=%s, [%s]", ci.CID, ci.SeedID, ci.ConceptID.AsConcept().Name, ci.AsString())
 }
 
-func (ci *ConceptSeed) String() string { return ci.DefaultString() }
+func (ci *CoreSeed) String() string { return ci.DefaultString() }
 
 func NewStewardSeed(name string, desc string) *StewardSeed {
 	return &StewardSeed{
-		ConceptSeed:   NewConceptSeed(StewardConcept, name, desc),
+		CoreSeed:      NewCoreSeed(StewardConcept, name, desc),
 		StewardAssets: []SeedGUID{},
 		Investments:   []SeedGUID{},
 	}
@@ -279,8 +279,8 @@ func (i *StewardSeed) Update(ctx context.Context) error {
 
 func NewAssetSeed(name string, desc string, steward SeedGUID) *AssetSeed {
 	return &AssetSeed{
-		ConceptSeed: NewConceptSeed(AssetConcept, name, desc),
-		Steward:     steward,
+		CoreSeed: NewCoreSeed(AssetConcept, name, desc),
+		Steward:  steward,
 	}
 }
 
@@ -295,8 +295,8 @@ func (i *AssetSeed) Update(ctx context.Context) error {
 
 func NewCoinSeed(value float64) *CoinSeed {
 	return &CoinSeed{
-		ConceptSeed: NewConceptSeed(CoinConcept, "", ""),
-		Value:       value,
+		CoreSeed: NewCoreSeed(CoinConcept, "", ""),
+		Value:    value,
 	}
 }
 
@@ -307,7 +307,7 @@ func (i *CoinSeed) Update(ctx context.Context) error {
 
 func NewSmartContractSeed(name string, desc string, contractEvaluator SeedGUID, conditions string) *SmartContractSeed {
 	return &SmartContractSeed{
-		ConceptSeed:       NewConceptSeed(SmartContractConcept, name, desc),
+		CoreSeed:          NewCoreSeed(SmartContractConcept, name, desc),
 		ContractEvaluator: contractEvaluator,
 		Conditions:        conditions,
 	}
@@ -320,7 +320,7 @@ func (i *SmartContractSeed) Update(ctx context.Context) error {
 
 func NewContractEvaluatorSeed(name string, desc string, evaluationCriteria string) *ContractEvaluatorSeed {
 	return &ContractEvaluatorSeed{
-		ConceptSeed:        NewConceptSeed(ContractEvaluatorConcept, name, desc),
+		CoreSeed:           NewCoreSeed(ContractEvaluatorConcept, name, desc),
 		EvaluationCriteria: evaluationCriteria,
 	}
 }
@@ -332,7 +332,7 @@ func (i *ContractEvaluatorSeed) Update(ctx context.Context) error {
 
 func NewInvestmentSeed(name string, desc string, steward SeedGUID, asset SeedGUID, smartContract SeedGUID) *InvestmentSeed {
 	return &InvestmentSeed{
-		ConceptSeed:   NewConceptSeed(InvestmentConcept, name, desc),
+		CoreSeed:      NewCoreSeed(InvestmentConcept, name, desc),
 		Steward:       steward,
 		Asset:         asset,
 		SmartContract: smartContract,
@@ -346,7 +346,7 @@ func (i *InvestmentSeed) Update(ctx context.Context) error {
 
 func NewTransactionSeed(name string, desc string, fromSteward SeedGUID, toSteward SeedGUID, asset SeedGUID, coin SeedGUID) *TransactionSeed {
 	return &TransactionSeed{
-		ConceptSeed: NewConceptSeed(TransactionConcept, name, desc),
+		CoreSeed:    NewCoreSeed(TransactionConcept, name, desc),
 		FromSteward: fromSteward,
 		ToSteward:   toSteward,
 		Asset:       asset,
@@ -361,9 +361,9 @@ func (i *TransactionSeed) Update(ctx context.Context) error {
 
 func NewReturnSeed(name string, desc string, investment SeedGUID, amount float64) *ReturnSeed {
 	return &ReturnSeed{
-		ConceptSeed: NewConceptSeed(ReturnConcept, name, desc),
-		Investment:  investment,
-		Amount:      amount,
+		CoreSeed:   NewCoreSeed(ReturnConcept, name, desc),
+		Investment: investment,
+		Amount:     amount,
 	}
 }
 
@@ -372,40 +372,40 @@ func (i *ReturnSeed) Update(ctx context.Context) error {
 	return i.DefaultUpdate(ctx, json)
 }
 
-type UnmarshalSeedFunc func(data json.RawMessage) (ConceptSeed_i, error)
+type UnmarshalSeedFunc func(data json.RawMessage) (Seed_i, error)
 
 var unmarshalSeedFuncs map[ConceptGUID]UnmarshalSeedFunc
 
 func initSeedUnmarshal() {
 	unmarshalSeedFuncs = map[ConceptGUID]UnmarshalSeedFunc{
-		StewardConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		StewardConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*StewardSeed](data)
 		},
-		AssetConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		AssetConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*AssetSeed](data)
 		},
-		CoinConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		CoinConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*CoinSeed](data)
 		},
-		SmartContractConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		SmartContractConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*SmartContractSeed](data)
 		},
-		ContractEvaluatorConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		ContractEvaluatorConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*ContractEvaluatorSeed](data)
 		},
-		InvestmentConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		InvestmentConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*InvestmentSeed](data)
 		},
-		TransactionConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		TransactionConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*TransactionSeed](data)
 		},
-		ReturnConcept: func(data json.RawMessage) (ConceptSeed_i, error) {
+		ReturnConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*ReturnSeed](data)
 		},
 	}
 }
 
-func genericUnmarshalSeed[T ConceptSeed_i](data json.RawMessage) (ConceptSeed_i, error) {
+func genericUnmarshalSeed[T Seed_i](data json.RawMessage) (Seed_i, error) {
 	var seed T
 	if err := json.Unmarshal(data, &seed); err != nil {
 		return nil, err
@@ -413,10 +413,10 @@ func genericUnmarshalSeed[T ConceptSeed_i](data json.RawMessage) (ConceptSeed_i,
 	return seed, nil
 }
 
-type ConceptSeedMap map[SeedGUID]ConceptSeed_i
+type SeedMap map[SeedGUID]Seed_i
 
-func UnmarshalJSON2ConceptSeed(raw json.RawMessage) (ConceptSeed_i, error) {
-	var ci ConceptSeed
+func UnmarshalJSON2Seed(raw json.RawMessage) (Seed_i, error) {
+	var ci CoreSeed
 	json.Unmarshal(raw, &ci)
 	unmarshal, exists := unmarshalSeedFuncs[ci.ConceptID]
 	if !exists {
@@ -430,15 +430,15 @@ func UnmarshalJSON2ConceptSeed(raw json.RawMessage) (ConceptSeed_i, error) {
 	return seed, nil
 }
 
-func (cim *ConceptSeedMap) UnmarshalJSON(data []byte) error {
+func (cim *SeedMap) UnmarshalJSON(data []byte) error {
 	var rawSeeds map[SeedGUID]json.RawMessage
 	if err := json.Unmarshal(data, &rawSeeds); err != nil {
 		return err
 	}
 
-	*cim = make(ConceptSeedMap)
+	*cim = make(SeedMap)
 	for id, raw := range rawSeeds {
-		seed, err := UnmarshalJSON2ConceptSeed(raw)
+		seed, err := UnmarshalJSON2Seed(raw)
 		if err != nil {
 			return err
 		}

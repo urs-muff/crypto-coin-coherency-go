@@ -101,7 +101,7 @@ func initializeLists(ctx context.Context) {
 	conceptID2CID = make(ConceptGUID2CIDMap)
 	peerMap = make(PeerMap)
 	relationshipMap = make(RelationshipMap)
-	seedMap = make(ConceptSeedMap)
+	seedMap = make(SeedMap)
 	seedID2CID = make(SeedGUID2CIDMap)
 
 	if err := network.Bootstrap(ctx); err != nil {

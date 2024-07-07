@@ -25,7 +25,7 @@ func addSeed_h(c *gin.Context) {
 		Name        string         `json:"name"`
 		Description string         `json:"description"`
 		Concept     string         `json:"concept"`
-		Extra       map[string]any `json:"extra"`
+		Data        map[string]any `json:"data"`
 	}
 
 	if err := c.BindJSON(&newSeed); err != nil {
@@ -34,7 +34,7 @@ func addSeed_h(c *gin.Context) {
 	}
 
 	generator := &SeedNursery{}
-	seed, err := generator.CreateSeed(newSeed.Concept, newSeed.Name, newSeed.Description, newSeed.Extra)
+	seed, err := generator.CreateSeed(newSeed.Concept, newSeed.Name, newSeed.Description, newSeed.Data)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Failed to create seed: %v", err)})
 		return
