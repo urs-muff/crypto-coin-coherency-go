@@ -158,6 +158,9 @@ func initializeLists(ctx context.Context) {
 	SeedInvestmentConcept = findGUID("Seed Investment")
 	TransactionConcept = findGUID("Transaction")
 	ReturnConcept = findGUID("Return")
+	ProposalConcept = findGUID("Proposal")
+	ProposalActionConcept = findGUID("Proposal Action")
+	HarmonyGuidelineConcept = findGUID("Harmony Guideline")
 	initSeedUnmarshal()
 
 	if err := network.Load(ctx, seedID2CIDPath, &seedID2CID); err != nil {

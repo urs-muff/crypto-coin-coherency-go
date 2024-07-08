@@ -25,6 +25,9 @@ var (
 	SeedInvestmentConcept    ConceptGUID
 	TransactionConcept       ConceptGUID
 	ReturnConcept            ConceptGUID
+	ProposalConcept          ConceptGUID
+	ProposalActionConcept    ConceptGUID
+	HarmonyGuidelineConcept  ConceptGUID
 )
 
 type Seed_i interface {
@@ -171,6 +174,22 @@ type ReturnSeed struct {
 	Amount     float64  // Quantitative value of the return
 }
 
+type ProposalAction struct {
+	*CoreSeed
+	TargetID   ConceptGUID
+	ActionType string // e.g., 'UPDATE', 'CREATE', 'DELETE'
+	ActionData map[string]any
+}
+
+type Proposal struct {
+	*CoreSeed
+	StewardID    SeedGUID
+	ActionSeedID SeedGUID
+	VotesFor     int
+	VotesAgainst int
+	Status       string
+}
+
 func (ci CoreSeed) GetSeedID() SeedGUID {
 	return ci.SeedID
 }
@@ -268,6 +287,11 @@ func (ci *CoreSeed) DefaultString() string {
 }
 
 func (ci *CoreSeed) String() string { return ci.DefaultString() }
+
+func (i *CoreSeed) Update(ctx context.Context) error {
+	json, _ := json.Marshal(i)
+	return i.DefaultUpdate(ctx, json)
+}
 
 func NewStewardSeed(name string, desc string) *StewardSeed {
 	return &StewardSeed{
@@ -393,6 +417,36 @@ func (i *ReturnSeed) Update(ctx context.Context) error {
 	return i.DefaultUpdate(ctx, json)
 }
 
+func (i *ProposalAction) String() string {
+	return fmt.Sprintf("%s, Target=[%s], Action=[%s], Data=[%s]",
+		i.DefaultString(),
+		i.TargetID.AsConcept().String(),
+		i.ActionType,
+		i.ActionData,
+	)
+}
+
+func (i *ProposalAction) Update(ctx context.Context) error {
+	json, _ := json.Marshal(i)
+	return i.DefaultUpdate(ctx, json)
+}
+
+func (i *Proposal) String() string {
+	return fmt.Sprintf("%s, Steward=[%s], Action=[%s], For=[%d], Against=[%d], Status=[%s]",
+		i.DefaultString(),
+		i.StewardID.AsStewardSeed().String(),
+		i.ActionSeedID.AsSeed(),
+		i.VotesFor,
+		i.VotesAgainst,
+		i.Status,
+	)
+}
+
+func (i *Proposal) Update(ctx context.Context) error {
+	json, _ := json.Marshal(i)
+	return i.DefaultUpdate(ctx, json)
+}
+
 type UnmarshalSeedFunc func(data json.RawMessage) (Seed_i, error)
 
 var unmarshalSeedFuncs map[ConceptGUID]UnmarshalSeedFunc
@@ -425,6 +479,15 @@ func initSeedUnmarshal() {
 		},
 		ReturnConcept: func(data json.RawMessage) (Seed_i, error) {
 			return genericUnmarshalSeed[*ReturnSeed](data)
+		},
+		ProposalActionConcept: func(data json.RawMessage) (Seed_i, error) {
+			return genericUnmarshalSeed[*ProposalAction](data)
+		},
+		ProposalConcept: func(data json.RawMessage) (Seed_i, error) {
+			return genericUnmarshalSeed[*Proposal](data)
+		},
+		HarmonyGuidelineConcept: func(data json.RawMessage) (Seed_i, error) {
+			return genericUnmarshalSeed[*CoinSeed](data)
 		},
 	}
 }

@@ -616,6 +616,19 @@ concepts:
   - name: Contract Evaluator
     description: Provides an API to evaluate the conditions of smart contracts, ensuring that they are executed only when their stipulated criteria are met.
     type: SystemConcept
+  
+  - name: Harmony Guideline
+    description: Harmony Guideline are the collectively agreed-upon principles, practices, and rules that govern the operations and interactions within the Crypto Coin Coherency Network, promoting balance, coherence, and synergy.
+    type: SystemConcept
+
+  - name: Proposal
+    description: A Proposal is a formal suggestion for change or action within the Crypto Coin Coherency Network, presented for collective consideration and decision-making.
+    type: SystemConcept
+
+  - name: Proposal Action
+    description: The Proposal Action is a detailed description of what the Proposal aims to do. It's separated from the Proposal itself to allow for more flexibility and reusability.
+    type: SystemConcept
+
 
 relationships:
   - name: Component Of

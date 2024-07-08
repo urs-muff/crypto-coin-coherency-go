@@ -33,6 +33,12 @@ func (sf *SeedNursery) CreateSeed(conceptID ConceptGUID, data map[string]any) (S
 		return sf.createTransactionSeed(baseSeed, data)
 	case ReturnConcept:
 		return sf.createReturnSeed(baseSeed, data)
+	case ProposalActionConcept:
+		return sf.createProposalActionSeed(baseSeed, data)
+	case ProposalConcept:
+		return sf.createProposalSeed(baseSeed, data)
+	case HarmonyGuidelineConcept:
+		return baseSeed, nil
 	default:
 		return nil, fmt.Errorf("concept not handled: %s", conceptID)
 	}
@@ -166,6 +172,52 @@ func (sf *SeedNursery) createReturnSeed(base *CoreSeed, data map[string]any) (*R
 	}
 	if amount, ok := data["amount"].(float64); ok {
 		seed.Amount = amount
+	}
+	return seed, nil
+}
+
+func (sf *SeedNursery) createProposalActionSeed(base *CoreSeed, data map[string]any) (*ProposalAction, error) {
+	seed := &ProposalAction{CoreSeed: base}
+	if targetID, ok := data["TargetID"].(string); ok {
+		seed.TargetID = ConceptGUID(targetID)
+		_, ok := conceptMap[seed.TargetID]
+		if !ok {
+			return nil, fmt.Errorf("TargetID invalid: %s", stewardID)
+		}
+	}
+	if actionType, ok := data["ActionType"].(string); ok {
+		seed.ActionType = actionType
+	}
+	if actionData, ok := data["ActionData"].(map[string]any); ok {
+		seed.ActionData = actionData
+	}
+	return seed, nil
+}
+
+func (sf *SeedNursery) createProposalSeed(base *CoreSeed, data map[string]any) (*Proposal, error) {
+	seed := &Proposal{CoreSeed: base}
+	if stewardID, ok := data["StewardID"].(string); ok {
+		seed.StewardID = SeedGUID(stewardID)
+		_, ok := seedMap[seed.StewardID]
+		if !ok {
+			return nil, fmt.Errorf("StewardID invalid: %s", stewardID)
+		}
+	}
+	if actionSeedID, ok := data["ActionSeedID"].(string); ok {
+		seed.ActionSeedID = SeedGUID(actionSeedID)
+		_, ok := seedMap[seed.ActionSeedID]
+		if !ok {
+			return nil, fmt.Errorf("ActionSeedID invalid: %s", actionSeedID)
+		}
+	}
+	if votesFor, ok := data["VotesFor"].(int); ok {
+		seed.VotesFor = votesFor
+	}
+	if votesAgainst, ok := data["VotesAgainst"].(int); ok {
+		seed.VotesAgainst = votesAgainst
+	}
+	if status, ok := data["Status"].(string); ok {
+		seed.Status = status
 	}
 	return seed, nil
 }
