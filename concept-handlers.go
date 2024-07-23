@@ -41,7 +41,7 @@ func addConcept_h(c *gin.Context) {
 	var newConcept struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
-		Type        string `json:"type"`
+		ConceptType string `json:"type"`
 	}
 
 	if err := c.BindJSON(&newConcept); err != nil {
@@ -53,9 +53,9 @@ func addConcept_h(c *gin.Context) {
 		ID:            ConceptGUID(uuid.New().String()),
 		Name:          newConcept.Name,
 		Description:   newConcept.Description,
-		Type:          newConcept.Type,
+		ConceptType:   newConcept.ConceptType,
 		Timestamp:     time.Now(),
-		Relationships: []ConceptGUID{},
+		Relationships: []RelationshipGUID{},
 	}
 
 	addNewConcept(c.Request.Context(), concept, peerID)
@@ -95,7 +95,7 @@ func updateConcept_h(c *gin.Context) {
 	// Update the concept fields
 	existingConcept.Name = updatedConcept.Name
 	existingConcept.Description = updatedConcept.Description
-	existingConcept.Type = updatedConcept.Type
+	existingConcept.ConceptType = updatedConcept.Type
 	existingConcept.Timestamp = time.Now()
 
 	// Use the existing function to update the concept

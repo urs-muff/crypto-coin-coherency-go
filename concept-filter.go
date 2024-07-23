@@ -10,22 +10,22 @@ func isEmptyFilter(filter ConceptFilter) bool {
 }
 
 func matchesConcept(concept Concept, filter ConceptFilter) bool {
-	if filter.CID != "" && concept.GetCID() != filter.CID {
+	if filter.CID != "" && concept.CID != filter.CID {
 		return false
 	}
-	if filter.GUID != "" && concept.GetGUID() != filter.GUID {
+	if filter.GUID != "" && concept.ID != filter.GUID {
 		return false
 	}
-	if filter.Name != "" && !strings.Contains(strings.ToLower(concept.GetName()), strings.ToLower(filter.Name)) {
+	if filter.Name != "" && !strings.Contains(strings.ToLower(concept.Name), strings.ToLower(filter.Name)) {
 		return false
 	}
-	if filter.Description != "" && !strings.Contains(strings.ToLower(concept.GetDescription()), strings.ToLower(filter.Description)) {
+	if filter.Description != "" && !strings.Contains(strings.ToLower(concept.Description), strings.ToLower(filter.Description)) {
 		return false
 	}
-	if filter.Type != "" && concept.GetType() != filter.Type {
+	if filter.Type != "" && concept.ConceptType != filter.Type {
 		return false
 	}
-	if filter.TimestampAfter != nil && !concept.GetTimestamp().After(*filter.TimestampAfter) {
+	if filter.TimestampAfter != nil && !concept.Timestamp.After(*filter.TimestampAfter) {
 		return false
 	}
 	return true

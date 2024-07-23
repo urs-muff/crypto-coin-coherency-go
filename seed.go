@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type SeedGUID GUID
+type SeedGUID EntityGUID
 type SeedGUID2CIDMap map[SeedGUID]CID
 
 var (
@@ -31,6 +31,12 @@ var (
 )
 
 type Seed_i interface {
+	GetID() EntityGUID
+	GetName() string
+	GetEntityType() string
+	AddRelationship(relationshipID RelationshipGUID)
+	GetRelationships() []RelationshipGUID
+
 	GetSeedID() SeedGUID
 	GetCID() CID
 	SetCID(cid CID)
@@ -42,13 +48,22 @@ type Seed_i interface {
 
 // CoreSeed base structure for all seeds of concepts
 type CoreSeed struct {
-	CID         CID `json:"-"`
-	SeedID      SeedGUID
-	ConceptID   ConceptGUID // Identifies the type of concept this seed represents
-	Name        string
-	Description string
-	Timestamp   time.Time
+	CID           CID `json:"-"`
+	SeedID        SeedGUID
+	ConceptID     ConceptGUID
+	Name          string
+	Description   string
+	Relationships []RelationshipGUID
+	Timestamp     time.Time
 }
+
+func (s *CoreSeed) GetID() EntityGUID     { return EntityGUID(s.SeedID) }
+func (s *CoreSeed) GetName() string       { return s.Name }
+func (s *CoreSeed) GetEntityType() string { return "Seed" }
+func (s *CoreSeed) AddRelationship(id RelationshipGUID) {
+	s.Relationships = append(s.Relationships, id)
+}
+func (s *CoreSeed) GetRelationships() []RelationshipGUID { return s.Relationships }
 
 type CoinValue_i interface {
 	Value() float64
@@ -190,11 +205,11 @@ type Proposal struct {
 	Status       string
 }
 
-func (ci CoreSeed) GetSeedID() SeedGUID {
+func (ci *CoreSeed) GetSeedID() SeedGUID {
 	return ci.SeedID
 }
 
-func (ci CoreSeed) GetCID() CID {
+func (ci *CoreSeed) GetCID() CID {
 	return ci.CID
 }
 

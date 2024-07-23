@@ -15,10 +15,14 @@ func saveData(ctx context.Context, path string, data any) error {
 }
 
 func saveRelationships(ctx context.Context) error {
+	relationshipMu.RLock()
+	defer relationshipMu.RUnlock()
 	return saveData(ctx, relationshipsPath, relationshipMap)
 }
 
 func saveConcepts(ctx context.Context) error {
+	conceptMu.RLock()
+	defer conceptMu.RUnlock()
 	if err := saveData(ctx, conceptsPath, conceptMap); err != nil {
 		return err
 	}

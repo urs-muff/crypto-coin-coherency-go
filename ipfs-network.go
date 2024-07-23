@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"math"
 	"strings"
 	"sync"
 	"time"
@@ -46,8 +45,8 @@ func addOrUpdateConcept(ctx context.Context, concept *Concept, pID PeerID) error
 		log.Printf("Failed to update concept: %v", err)
 		return err
 	}
-	conceptMap[concept.GetGUID()] = concept
-	conceptID2CID[concept.GetGUID()] = concept.GetCID()
+	conceptMap[concept.ID] = concept
+	conceptID2CID[concept.ID] = concept.GetCID()
 	log.Printf("Added/Updated concept: %s\n", concept)
 
 	if err := saveConcepts(ctx); err != nil {
@@ -134,9 +133,11 @@ func handleReceivedMessage(data []byte) {
 
 	// Update local relationships with received ones
 	for id, relationship := range message.Relationships {
+		relationshipMu.Lock()
 		if _, exists := relationshipMap[id]; !exists {
 			relationshipMap[id] = relationship
 		}
+		relationshipMu.Unlock()
 	}
 	saveRelationships(context.Background())
 
@@ -146,9 +147,9 @@ func handleReceivedMessage(data []byte) {
 
 // Modify the Interact method of Relationship
 func (r *Relationship) Interact(interactionType ConceptGUID) {
-	r.Interactions++
-	r.Depth = int(math.Log2(float64(r.Interactions))) + 1
-	r.LastInteraction = time.Now()
+	//	r.Interactions++
+	//	r.Depth = int(math.Log2(float64(r.Interactions))) + 1
+	//	r.LastInteraction = time.Now()
 
 	// Get the interaction type concept
 	conceptMu.RLock()
@@ -160,21 +161,22 @@ func (r *Relationship) Interact(interactionType ConceptGUID) {
 		return
 	}
 
+	log.Printf("Name=%s\n", interactionConcept.Name)
 	// Apply effects based on the interaction type
-	switch interactionConcept.Name {
-	case "Music":
-		r.FrequencySpec = append(r.FrequencySpec, 440.0) // Add A4 note
-		r.Amplitude *= 1.05
-	case "Meditation":
-		r.EnergyFlow *= 1.1
-		r.Volume *= 0.95
-	case "FlowState":
-		r.EnergyFlow *= 1.2
-		r.Amplitude *= 1.1
-		r.Volume *= 1.05
-	default:
-		r.EnergyFlow *= 1.05
-	}
+	//	switch interactionConcept.Name {
+	//	case "Music":
+	//		r.FrequencySpec = append(r.FrequencySpec, 440.0) // Add A4 note
+	//		r.Amplitude *= 1.05
+	//	case "Meditation":
+	//		r.EnergyFlow *= 1.1
+	//		r.Volume *= 0.95
+	//	case "FlowState":
+	//		r.EnergyFlow *= 1.2
+	//		r.Amplitude *= 1.1
+	//		r.Volume *= 1.05
+	//	default:
+	//		r.EnergyFlow *= 1.05
+	//	}
 
 	r.Timestamp = time.Now()
 }

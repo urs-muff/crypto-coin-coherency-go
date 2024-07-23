@@ -19,7 +19,9 @@ type PeerID string
 
 // ConceptGUID represents a globally unique identifier
 type GUID string
-type ConceptGUID GUID
+type EntityGUID GUID
+type ConceptGUID EntityGUID
+type RelationshipGUID GUID
 
 type ConceptGUID2CIDMap map[ConceptGUID]CID
 
@@ -84,6 +86,13 @@ type Node_i interface {
 }
 
 // Now let's define some concrete implementations of these interfaces
+type Entity interface {
+	GetID() EntityGUID
+	GetName() string
+	GetEntityType() string
+	AddRelationship(relationshipID RelationshipGUID)
+	GetRelationships() []RelationshipGUID
+}
 
 // Concept implements the Concept_i interface
 type Concept struct {
@@ -91,74 +100,67 @@ type Concept struct {
 	ID            ConceptGUID
 	Name          string
 	Description   string
-	Type          string
-	Relationships []ConceptGUID
+	ConceptType   string
+	Relationships []RelationshipGUID
 	Timestamp     time.Time
 }
 
+func (c *Concept) GetID() EntityGUID                    { return EntityGUID(c.ID) }
+func (c *Concept) GetName() string                      { return c.Name }
+func (c *Concept) GetEntityType() string                { return "Concept" }
+func (c *Concept) AddRelationship(id RelationshipGUID)  { c.Relationships = append(c.Relationships, id) }
+func (c *Concept) GetRelationships() []RelationshipGUID { return c.Relationships }
+
 type ConceptMap map[ConceptGUID]*Concept
 
-func (c Concept) GetCID() CID                     { return c.CID }
-func (c Concept) GetGUID() ConceptGUID            { return c.ID }
-func (c Concept) GetName() string                 { return c.Name }
-func (c Concept) GetDescription() string          { return c.Description }
-func (c Concept) GetType() string                 { return c.Type }
-func (c Concept) GetRelationships() []ConceptGUID { return c.Relationships }
-func (c Concept) GetTimestamp() time.Time         { return c.Timestamp }
-func (c Concept) String() string                  { return fmt.Sprintf("%s: %s (%s)", c.ID, c.Name, c.Type) }
+func (c Concept) GetCID() CID             { return c.CID }
+func (c Concept) GetDescription() string  { return c.Description }
+func (c Concept) GetConceptType() string  { return c.ConceptType }
+func (c Concept) GetTimestamp() time.Time { return c.Timestamp }
+func (c Concept) String() string          { return fmt.Sprintf("%s: %s (%s)", c.ID, c.Name, c.ConceptType) }
 
 // Relationship represents a connection between two entities
 type Relationship struct {
-	ID              ConceptGUID
-	SourceID        ConceptGUID
-	TargetID        ConceptGUID
-	Type            ConceptGUID
-	EnergyFlow      float64
-	FrequencySpec   []float64
-	Amplitude       float64
-	Volume          float64
-	Depth           int
-	Interactions    int
-	LastInteraction time.Time
-	Timestamp       time.Time
+	ID         RelationshipGUID
+	SourceID   EntityGUID
+	TargetID   EntityGUID
+	Type       ConceptGUID
+	Properties map[string]interface{}
+	Timestamp  time.Time
 }
 
 func (r Relationship) String() string {
 	return fmt.Sprintf("%s (%s): [%s] => [%s]",
-		r.ID.AsConcept(),
-		r.Type.AsConcept(),
-		r.SourceID.AsConcept(),
-		r.TargetID.AsConcept())
+		r.ID,
+		r.Type,
+		r.SourceID,
+		r.TargetID)
 }
 
 // RelationshipMap stores all relationships
-type RelationshipMap map[ConceptGUID]*Relationship
+type RelationshipMap map[RelationshipGUID]*Relationship
+type EntityMap map[EntityGUID]Entity
 
 // Function to create a new relationship
-func CreateRelationship(sourceID, targetID ConceptGUID, relationType ConceptGUID) *Relationship {
+func CreateRelationship(sourceID, targetID EntityGUID, relationType ConceptGUID, properties map[string]interface{}) *Relationship {
 	return &Relationship{
-		ID:            ConceptGUID(uuid.New().String()),
-		SourceID:      sourceID,
-		TargetID:      targetID,
-		Type:          relationType,
-		EnergyFlow:    1.0, // Initial values, can be adjusted
-		FrequencySpec: []float64{1.0},
-		Amplitude:     1.0,
-		Volume:        1.0,
-		Depth:         1,
-		Interactions:  0,
-		Timestamp:     time.Now(),
+		ID:         RelationshipGUID(uuid.New().String()),
+		SourceID:   sourceID,
+		TargetID:   targetID,
+		Type:       relationType,
+		Properties: properties,
+		Timestamp:  time.Now(),
 	}
 }
 
 // Function to update a relationship
-func (r *Relationship) Deepen() {
-	r.EnergyFlow *= 1.1
-	r.Amplitude *= 1.05
-	r.Volume *= 1.05
-	r.FrequencySpec = append(r.FrequencySpec, float64(len(r.FrequencySpec)+1))
-	r.Timestamp = time.Now()
-}
+// func (r *Relationship) Deepen() {
+// 	r.EnergyFlow *= 1.1
+// 	r.Amplitude *= 1.05
+// 	r.Volume *= 1.05
+// 	r.FrequencySpec = append(r.FrequencySpec, float64(len(r.FrequencySpec)+1))
+// 	r.Timestamp = time.Now()
+// }
 
 // ConcretePeer implements the Peer_i interface
 type Peer struct {
@@ -263,6 +265,7 @@ var (
 	conceptMu     sync.RWMutex
 
 	relationshipMap RelationshipMap
+	relationshipMu  sync.RWMutex
 
 	peerMap   PeerMap
 	peerMapMu sync.RWMutex
@@ -274,6 +277,27 @@ var (
 	seedMap    SeedMap
 	seedID2CID SeedGUID2CIDMap
 )
+
+func addOrUpdateRelationship(_ context.Context, relationship *Relationship) error {
+	relationshipMu.Lock()
+	defer relationshipMu.Unlock()
+
+	relationshipMap[relationship.ID] = relationship
+
+	return nil
+}
+
+func (g EntityGUID) AsEntity() Entity {
+	c, ok := conceptMap[ConceptGUID(g)]
+	if ok {
+		return c
+	}
+	s, ok := seedMap[SeedGUID(g)]
+	if ok {
+		return s
+	}
+	return nil
+}
 
 func (g ConceptGUID) AsConcept() *Concept {
 	c, ok := conceptMap[g]
@@ -333,7 +357,7 @@ func (pm *PeerMap) UnmarshalJSON(data []byte) error {
 }
 
 func (rm *RelationshipMap) UnmarshalJSON(data []byte) error {
-	var rawMap map[ConceptGUID]json.RawMessage
+	var rawMap map[RelationshipGUID]json.RawMessage
 	if err := json.Unmarshal(data, &rawMap); err != nil {
 		return err
 	}

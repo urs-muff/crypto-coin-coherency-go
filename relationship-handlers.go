@@ -8,8 +8,8 @@ import (
 
 func addRelationship_h(c *gin.Context) {
 	var req struct {
-		SourceID ConceptGUID `json:"sourceId"`
-		TargetID ConceptGUID `json:"targetId"`
+		SourceID EntityGUID  `json:"sourceId"`
+		TargetID EntityGUID  `json:"targetId"`
 		TypeID   ConceptGUID `json:"typeId"`
 	}
 	if err := c.BindJSON(&req); err != nil {
@@ -17,15 +17,17 @@ func addRelationship_h(c *gin.Context) {
 		return
 	}
 
-	relationship := CreateRelationship(req.SourceID, req.TargetID, req.TypeID)
+	relationship := CreateRelationship(req.SourceID, req.TargetID, req.TypeID, map[string]any{})
+	relationshipMu.Lock()
 	relationshipMap[relationship.ID] = relationship
+	relationshipMu.Unlock()
 
 	// Update the concepts
 	conceptMu.Lock()
-	if concept, ok := conceptMap[req.SourceID]; ok {
+	if concept, ok := conceptMap[ConceptGUID(req.SourceID)]; ok {
 		concept.Relationships = append(concept.Relationships, relationship.ID)
 	}
-	if concept, ok := conceptMap[req.TargetID]; ok {
+	if concept, ok := conceptMap[ConceptGUID(req.TargetID)]; ok {
 		concept.Relationships = append(concept.Relationships, relationship.ID)
 	}
 	conceptMu.Unlock()
@@ -38,10 +40,12 @@ func addRelationship_h(c *gin.Context) {
 }
 
 func deepenRelationship_h(c *gin.Context) {
-	id := ConceptGUID(c.Param("id"))
+	id := RelationshipGUID(c.Param("id"))
 	if relationship, ok := relationshipMap[id]; ok {
-		relationship.Deepen()
+		// relationship.Deepen()
+		relationshipMu.Lock()
 		relationshipMap[id] = relationship
+		relationshipMu.Unlock()
 		saveRelationships(c.Request.Context())
 		c.JSON(http.StatusOK, relationship)
 	} else {
@@ -51,6 +55,8 @@ func deepenRelationship_h(c *gin.Context) {
 
 func getRelationships_h(c *gin.Context) {
 	relationships := []Relationship{}
+	relationshipMu.RLock()
+	defer relationshipMu.RUnlock()
 	for _, relationship := range relationshipMap {
 		relationships = append(relationships, *relationship)
 	}
@@ -59,7 +65,9 @@ func getRelationships_h(c *gin.Context) {
 }
 
 func getRelationship_h(c *gin.Context) {
-	id := ConceptGUID(c.Param("id"))
+	id := RelationshipGUID(c.Param("id"))
+	relationshipMu.RLock()
+	defer relationshipMu.RUnlock()
 	if relationship, ok := relationshipMap[id]; ok {
 		c.JSON(http.StatusOK, relationship)
 	} else {
@@ -73,7 +81,7 @@ func getRelationshipTypes_h(c *gin.Context) {
 
 	var relationshipTypes []Concept
 	for _, concept := range conceptMap {
-		if concept.Type == "RelationshipType" {
+		if concept.ConceptType == "RelationshipType" {
 			relationshipTypes = append(relationshipTypes, *concept)
 		}
 	}
@@ -93,7 +101,7 @@ func getRelationshipsByType_h(c *gin.Context) {
 }
 
 func interactWithRelationship_h(c *gin.Context) {
-	id := ConceptGUID(c.Param("id"))
+	id := RelationshipGUID(c.Param("id"))
 	var req struct {
 		InteractionTypeGUID ConceptGUID `json:"interactionTypeGuid"`
 	}

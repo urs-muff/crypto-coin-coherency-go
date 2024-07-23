@@ -146,21 +146,21 @@ func initializeLists(ctx context.Context) {
 			log.Fatalf("Failed to load concepts: %v", err)
 		}
 		for id, concept := range conceptMap {
-			guidMap[concept.Name] = id
+			guidMap[concept.Name] = GUID(id)
 		}
 	}
-	StewardConcept = findGUID("Steward")
-	AssetConcept = findGUID("Asset")
-	CoinConcept = findGUID("Coin")
-	SmartContractConcept = findGUID("Smart Contract")
-	ContractEvaluatorConcept = findGUID("Contract Evaluator")
-	ConceptInvestmentConcept = findGUID("Concept Investment")
-	SeedInvestmentConcept = findGUID("Seed Investment")
-	TransactionConcept = findGUID("Transaction")
-	ReturnConcept = findGUID("Return")
-	ProposalConcept = findGUID("Proposal")
-	ProposalActionConcept = findGUID("Proposal Action")
-	HarmonyGuidelineConcept = findGUID("Harmony Guideline")
+	StewardConcept = findConceptGUID("Steward")
+	AssetConcept = findConceptGUID("Asset")
+	CoinConcept = findConceptGUID("Coin")
+	SmartContractConcept = findConceptGUID("Smart Contract")
+	ContractEvaluatorConcept = findConceptGUID("Contract Evaluator")
+	ConceptInvestmentConcept = findConceptGUID("Concept Investment")
+	SeedInvestmentConcept = findConceptGUID("Seed Investment")
+	TransactionConcept = findConceptGUID("Transaction")
+	ReturnConcept = findConceptGUID("Return")
+	ProposalConcept = findConceptGUID("Proposal")
+	ProposalActionConcept = findConceptGUID("Proposal Action")
+	HarmonyGuidelineConcept = findConceptGUID("Harmony Guideline")
 	initSeedUnmarshal()
 
 	if err := network.Load(ctx, seedID2CIDPath, &seedID2CID); err != nil {
